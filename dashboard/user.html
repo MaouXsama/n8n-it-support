@@ -1,1 +1,120 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>User Portal</title><style>body{margin:0;background:#f4f7fb;font-family:Inter,system-ui;color:#10233f}.top{background:linear-gradient(135deg,#102a56,#2563eb);color:#fff;padding:28px clamp(20px,6%,80px);display:flex;align-items:center;justify-content:space-between;gap:20px}.top button{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);color:#fff;margin:0}.wrap{max-width:1200px;margin:auto;padding:32px clamp(20px,6%,80px)}.card{background:#fff;border:1px solid #e4e7ec;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 8px 24px #10233f0d}button{background:#2563eb;color:#fff;border:0;border-radius:9px;padding:12px 16px;font-weight:800;cursor:pointer}.muted{color:#667085}.ticket{border-top:1px solid #e4e7ec;padding:16px 0}.ticket:first-child{border-top:0}.badge{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:800}.status-completed{background:#dcfce7;color:#16723b}.status-open{background:#fff7d6;color:#a15c00}.status-in-progress{background:#e0efff;color:#1769aa}.status-cancelled{background:#eef2f6;color:#596579}.priority-high{background:#ffe4df;color:#c73524}.priority-normal{background:#e0efff;color:#1769aa}.priority-low{background:#eef2f6;color:#596579}</style><link rel="stylesheet" href="/dashboard-assets/app.css"></head><body><header class="top"><div class="masar-brand"><img class="masar-logo" src="/dashboard-assets/masar-logo.png" alt="Masar logo"><div class="masar-brand-copy"><h1 id="welcome">User Portal</h1><p>Submit and track your IT support tickets.</p></div></div><button class="utility-button header-action" id="signout" type="button" aria-label="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4"/><path d="m15 8 4 4-4 4"/><path d="M19 12H9"/></svg></button></header><main class="wrap"><div class="card"><h2>Open a ticket</h2><p class="muted">Describe your problem and n8n will assign the department, priority, and SLA.</p><a href="/create-ticket"><button>Create new ticket</button></a></div><div class="card"><h2>My tickets</h2><div id="tickets">Loading tickets...</div></div></main><script>document.getElementById("signout").addEventListener("click",()=>{sessionStorage.clear();location.href="/login"});const token=sessionStorage.getItem("token");if(!token)location.href="/login";const headers={Authorization:"Bearer "+token};async function load(){const me=await fetch("/api/auth/me",{headers}),mj=await me.json();if(!mj.user||mj.user.role!=="user"){location.href="/dashboard/";return}welcome.textContent="Welcome, "+mj.user.full_name;const r=await fetch("/api/tickets",{headers}),d=await r.json();if(!d.tickets.length){tickets.innerHTML='<p class="muted">No tickets yet.</p>';return}tickets.innerHTML=d.tickets.map(t=>{const status=String(t.status||"Open").toLowerCase().replace(/\s+/g,"-"),priority=String(t.priority||"Normal").toLowerCase();const messages={Open:"Your ticket has been received and sent to the appropriate IT department for review.","In Progress":"The IT department is currently working on your ticket. You will receive an email when it is completed.",Completed:"Your ticket has been completed. A completion notification has been sent to your email. Thank you for using Masar IT Support.",Cancelled:"This ticket has been cancelled. Please create a new ticket if you still require assistance."};const message=messages[t.status]||messages.Open;return `<article class="ticket"><strong>${t.ticket_id}</strong> · ${t.title}<br><span class="badge status-${status}">${t.status}</span> <span class="badge priority-${priority}">${t.priority||"Normal"}</span><p class="muted">Department: ${t.department} · Due: ${t.due_at?new Date(t.due_at).toLocaleString("en-US",{timeZone:"Asia/Riyadh"}):"-"}</p><div class="ticket-status-message message-${status}">${message}</div></article>`}).join("")}load();</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>User Portal</title>
+  <style>
+    body{margin:0;background:#f4f7fb;font-family:Inter,system-ui;color:#10233f}
+    .top{background:linear-gradient(135deg,#102a56,#2563eb);color:#fff;padding:28px clamp(20px,6%,80px);display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .top button{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);color:#fff;margin:0}
+    .wrap{max-width:1200px;margin:auto;padding:32px clamp(20px,6%,80px)}
+    .card{background:#fff;border:1px solid #e4e7ec;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 8px 24px #10233f0d}
+    button{background:#2563eb;color:#fff;border:0;border-radius:9px;padding:12px 16px;font-weight:800;cursor:pointer}
+    .muted{color:#667085}
+    .ticket-list{max-height:720px;overflow-y:auto;padding-right:10px;scrollbar-gutter:stable;scroll-behavior:smooth}
+    .ticket-list::-webkit-scrollbar{width:9px}
+    .ticket-list::-webkit-scrollbar-track{background:#f1f5f9;border-radius:999px}
+    .ticket-list::-webkit-scrollbar-thumb{background:#cbd5e1;border:2px solid #f1f5f9;border-radius:999px}
+    .ticket{border-top:1px solid #e4e7ec;padding:18px 2px}
+    .ticket:first-child{border-top:0}
+    .badge{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:800}
+    .status-completed{background:#dcfce7;color:#16723b}
+    .status-open{background:#fff7d6;color:#a15c00}
+    .status-in-progress{background:#e0efff;color:#1769aa}
+    .status-cancelled{background:#eef2f6;color:#596579}
+    .priority-critical{background:#fee2e2;color:#991b1b}
+    .priority-high{background:#ffe4df;color:#c73524}
+    .priority-normal{background:#e0efff;color:#1769aa}
+    .priority-low{background:#eef2f6;color:#596579}
+    .user-pagination{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-top:18px;margin-top:10px;border-top:1px solid #e4e7ec}
+    .pagination-controls{display:flex;align-items:center;gap:10px}
+    .pagination-summary,.pagination-page{color:#64748b;font-size:13px;font-weight:700}
+    .pagination-icon{width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important}
+    .pagination-icon:disabled{cursor:not-allowed;opacity:.42;box-shadow:none!important}
+    @media(max-width:720px){.ticket-list{max-height:620px;padding-right:5px}.user-pagination{align-items:center}.pagination-summary{width:100%}}
+  </style>
+  <link rel="stylesheet" href="/dashboard-assets/app.css">
+</head>
+<body>
+  <header class="top">
+    <div class="masar-brand">
+      <img class="masar-logo" src="/dashboard-assets/masar-logo.png" alt="Masar logo">
+      <div class="masar-brand-copy"><h1 id="welcome">User Portal</h1><p>Submit and track your IT support tickets.</p></div>
+    </div>
+    <button class="utility-button header-action" id="signout" type="button" aria-label="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4"/><path d="m15 8 4 4-4 4"/><path d="M19 12H9"/></svg></button>
+  </header>
+  <main class="wrap">
+    <div class="card">
+      <h2>Open a ticket</h2>
+      <p class="muted">Describe your problem and n8n will assign the department, priority, and SLA.</p>
+      <a class="primary-action" href="/create-ticket">Create new ticket</a>
+    </div>
+    <div class="card">
+      <h2>My tickets</h2>
+      <div class="ticket-list" id="ticket-list"><div id="tickets">Loading tickets...</div></div>
+      <div class="user-pagination">
+        <div class="pagination-summary" id="ticket-range">Showing 0 tickets</div>
+        <div class="pagination-controls">
+          <button class="utility-button pagination-icon" id="ticket-prev" type="button" aria-label="Previous tickets page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+          <span class="pagination-page" id="ticket-page-label">Page 1 of 1</span>
+          <button class="utility-button pagination-icon" id="ticket-next" type="button" aria-label="Next tickets page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    const token=sessionStorage.getItem('token');
+    if(!token) location.href='/login';
+    const headers={Authorization:'Bearer '+token};
+    let ticketPage=1;
+    const ticketPageSize=5;
+    let ticketTotalPages=1;
+
+    function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));}
+
+    function renderTickets(data){
+      const rows=data.tickets||[];
+      const total=Number(data.total)||0;
+      ticketPage=Number(data.page)||1;
+      ticketTotalPages=Number(data.totalPages)||1;
+      const start=(ticketPage-1)*ticketPageSize;
+      document.getElementById('ticket-range').textContent=total?`Showing ${start+1}–${start+rows.length} of ${total} tickets`:'Showing 0 tickets';
+      document.getElementById('ticket-page-label').textContent=`Page ${ticketPage} of ${ticketTotalPages}`;
+      document.getElementById('ticket-prev').disabled=ticketPage<=1;
+      document.getElementById('ticket-next').disabled=ticketPage>=ticketTotalPages;
+      if(!rows.length){document.getElementById('tickets').innerHTML='<p class="muted">No tickets yet.</p>';return;}
+      document.getElementById('tickets').innerHTML=rows.map(ticket=>{
+        const status=String(ticket.status||'Open').toLowerCase().replace(/\s+/g,'-');
+        const priority=String(ticket.priority||'Normal').toLowerCase();
+        const messages={Open:'Your ticket has been received and sent to the appropriate IT department for review.','In Progress':'The IT department is currently working on your ticket. You will receive an email when it is completed.',Completed:'Your ticket has been completed. A completion notification has been sent to your email. Thank you for using Masar IT Support.',Cancelled:'This ticket has been cancelled. Please create a new ticket if you still require assistance.'};
+        const due=ticket.due_at?new Date(ticket.due_at).toLocaleString('en-US',{timeZone:'Asia/Riyadh'}):'—';
+        return `<article class="ticket"><strong>${escapeHtml(ticket.ticket_id)}</strong> · ${escapeHtml(ticket.title)}<br><span class="badge status-${status}">${escapeHtml(ticket.status)}</span> <span class="badge priority-${priority}">${escapeHtml(ticket.priority||'Normal')}</span><p class="muted">Department: ${escapeHtml(ticket.department||'—')} · Due: ${escapeHtml(due)}</p><div class="ticket-status-message message-${status}">${messages[ticket.status]||messages.Open}</div></article>`;
+      }).join('');
+    }
+
+    async function loadTickets(){
+      const list=document.getElementById('ticket-list');
+      try{
+        const response=await fetch(`/api/tickets?page=${ticketPage}&limit=${ticketPageSize}&sort=operational`,{headers});
+        if(!response.ok) throw new Error('Tickets could not be loaded');
+        renderTickets(await response.json());
+        list.scrollTo({top:0,behavior:'smooth'});
+      }catch(error){document.getElementById('tickets').innerHTML=`<p class="muted">${escapeHtml(error.message)}. Please refresh the page.</p>`;}
+    }
+
+    async function initialize(){
+      const response=await fetch('/api/auth/me',{headers});
+      const data=await response.json();
+      if(!data.user||data.user.role!=='user'){location.href='/dashboard/';return;}
+      document.getElementById('welcome').textContent='Welcome, '+data.user.full_name;
+      await loadTickets();
+    }
+
+    document.getElementById('signout').addEventListener('click',()=>{sessionStorage.clear();location.href='/login'});
+    document.getElementById('ticket-prev').addEventListener('click',()=>{if(ticketPage>1){ticketPage-=1;loadTickets();}});
+    document.getElementById('ticket-next').addEventListener('click',()=>{if(ticketPage<ticketTotalPages){ticketPage+=1;loadTickets();}});
+    initialize();
+  </script>
+</body>
+</html>
