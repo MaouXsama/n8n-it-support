@@ -120,6 +120,13 @@
     .timeline-completed { background: #dcfce7; color: #16723b; }
     .timeline-late { background: #fee2e2; color: #991b1b; }
     .timeline-cancelled { background: #eef2f6; color: #b42318; }
+    .priority-critical-row td:first-child { border-left: 4px solid #dc2626; }
+    .priority-high-row td:first-child { border-left: 4px solid #f97316; }
+    .ticket-pagination { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding-top: 16px; }
+    .pagination-controls { display: flex; align-items: center; gap: 10px; }
+    .pagination-controls button { width: auto; margin: 0; padding: 8px 13px; }
+    .pagination-controls button:disabled { cursor: not-allowed; opacity: .45; transform: none; }
+    .pagination-summary, .pagination-page { color: #64748b; font-size: 13px; font-weight: 700; }
     .muted { color: #667085; }
     @media (max-width: 900px) { .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); } .topbar { align-items: flex-start; flex-direction: column; } }
     @media (max-width: 560px) { .dashboard { grid-template-columns: 1fr; } main { padding-inline: 14px; } .panel { padding: 18px; } }
@@ -229,6 +236,7 @@
         <option>Open</option>
         <option>In Progress</option>
         <option>Completed</option>
+        <option>Cancelled</option>
       </select>
       <select id="priority-filter">
         <option value="">All priorities</option>
@@ -237,12 +245,33 @@
         <option>Normal</option>
         <option>Low</option>
       </select>
+      <select id="ticket-sort" aria-label="Sort tickets">
+        <option value="operational">Operational priority</option>
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="sla">SLA deadline</option>
+        <option value="priority">Priority</option>
+        <option value="recently-completed">Recently completed</option>
+      </select>
+      <select id="ticket-page-size" aria-label="Tickets per page">
+        <option value="10">10 per page</option>
+        <option value="25">25 per page</option>
+        <option value="50">50 per page</option>
+      </select>
     </div>
     <div class="table-wrap">
       <table>
         <thead><tr><th>Ticket</th><th>Title</th><th>Requester</th><th>Department</th><th>Priority</th><th>Status</th><th>Timeline</th><th>Change Department</th><th>Update Status</th></tr></thead>
         <tbody id="ticket-rows"><tr><td colspan="9" class="muted">Loading tickets...</td></tr></tbody>
       </table>
+    </div>
+    <div class="ticket-pagination">
+      <div class="pagination-summary" id="ticket-range">Showing 0 tickets</div>
+      <div class="pagination-controls">
+        <button class="small-button" id="ticket-prev" type="button">Previous</button>
+        <span class="pagination-page" id="ticket-page-label">Page 1 of 1</span>
+        <button class="small-button" id="ticket-next" type="button">Next</button>
+      </div>
     </div>
   </section>
 
@@ -266,6 +295,9 @@
 
     let dashboardData = { metrics: {}, tickets: [] };
     let currentUser = null;
+    let ticketPage = 1;
+    let ticketPageSize = 10;
+    let ticketTotalPages = 1;
 
     function openTicketDetails(ticketId) {
       const ticket = dashboardData.tickets.find(t => t.ticket_id === ticketId);
@@ -322,7 +354,7 @@
     }
 
     async function loadDashboard() {
-      const response = await fetch('/api/tickets', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
+      const response = await fetch('/api/tickets?limit=100', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
 
       const data = await response.json();
       dashboardData.tickets = data.tickets || [];
@@ -357,7 +389,38 @@
     }
 
     function ticketIsOverdue(ticket) {
-      return ticket.status !== 'Completed' && ticket.due_at && new Date(ticket.due_at) <= new Date();
+      return ['Open', 'In Progress'].includes(ticket.status) && ticket.due_at && new Date(ticket.due_at) <= new Date();
+    }
+
+    function priorityRank(ticket) {
+      return { Critical: 0, High: 1, Normal: 2, Low: 3 }[ticket.priority || 'Normal'] ?? 2;
+    }
+
+    function sortTickets(tickets, mode) {
+      const time = value => value ? new Date(value).getTime() : 0;
+      const dueTime = ticket => ticket.due_at ? time(ticket.due_at) : Number.MAX_SAFE_INTEGER;
+      return [...tickets].sort((a, b) => {
+        if (mode === 'newest') return time(b.created_at) - time(a.created_at);
+        if (mode === 'oldest') return time(a.created_at) - time(b.created_at);
+        if (mode === 'sla') return dueTime(a) - dueTime(b) || time(b.created_at) - time(a.created_at);
+        if (mode === 'priority') return priorityRank(a) - priorityRank(b) || time(b.created_at) - time(a.created_at);
+        if (mode === 'recently-completed') {
+          const aCompleted = a.status === 'Completed' ? 0 : 1;
+          const bCompleted = b.status === 'Completed' ? 0 : 1;
+          return aCompleted - bCompleted || time(b.completed_at || b.created_at) - time(a.completed_at || a.created_at);
+        }
+        const operationalRank = ticket => {
+          if (ticketIsOverdue(ticket)) return 0;
+          if (['Open', 'In Progress'].includes(ticket.status)) return 1 + priorityRank(ticket);
+          if (ticket.status === 'Completed') return 5;
+          if (ticket.status === 'Cancelled') return 6;
+          return 7;
+        };
+        const rankDifference = operationalRank(a) - operationalRank(b);
+        if (rankDifference) return rankDifference;
+        if (['Open', 'In Progress'].includes(a.status) && ['Open', 'In Progress'].includes(b.status)) return dueTime(a) - dueTime(b) || time(b.created_at) - time(a.created_at);
+        return time(b.completed_at || b.created_at) - time(a.completed_at || a.created_at);
+      });
     }
 
     function formatTimelineDate(value) {
@@ -382,10 +445,20 @@
       const department = document.getElementById('department-filter').value;
       const status = document.getElementById('status-filter').value;
       const priority = document.getElementById('priority-filter').value;
-      const rows = dashboardData.tickets.filter((ticket) => {
+      const filteredRows = dashboardData.tickets.filter((ticket) => {
         const text = `${ticket.ticket_id} ${ticket.title} ${ticket.requester}`.toLowerCase();
         return (!query || text.includes(query)) && (!department || ticket.department === department) && (!status || ticket.status === status) && (!priority || ticket.priority === priority);
       });
+      const sortedRows = sortTickets(filteredRows, document.getElementById('ticket-sort').value);
+      const totalPages = Math.max(1, Math.ceil(sortedRows.length / ticketPageSize));
+      ticketTotalPages = totalPages;
+      ticketPage = Math.min(ticketPage, totalPages);
+      const start = (ticketPage - 1) * ticketPageSize;
+      const rows = sortedRows.slice(start, start + ticketPageSize);
+      document.getElementById('ticket-range').textContent = sortedRows.length ? `Showing ${start + 1}–${Math.min(start + ticketPageSize, sortedRows.length)} of ${sortedRows.length} tickets` : 'Showing 0 tickets';
+      document.getElementById('ticket-page-label').textContent = `Page ${ticketPage} of ${totalPages}`;
+      document.getElementById('ticket-prev').disabled = ticketPage <= 1;
+      document.getElementById('ticket-next').disabled = ticketPage >= totalPages;
       const target = document.getElementById('ticket-rows');
       if (!rows.length) { target.innerHTML = '<tr><td colspan="9" class="muted">No matching tickets</td></tr>'; return; }
       target.innerHTML = rows.map((ticket) => {
@@ -398,7 +471,8 @@
         const moveControl = `<div class="action-stack">${move}</div>`;
         const updateControl = `<div class="action-stack">${statusControl}</div>`;
         const statusBadge = String(ticket.status || 'Open').toLowerCase().replace(/\s+/g, '-');
-        return `<tr class="${overdue ? 'overdue-row' : ''}"><td>${ticket.ticket_id}</td><td><strong>${ticket.title}</strong><br><button class="details-button" onclick="openTicketDetails('${ticket.ticket_id}')">View details</button></td><td>${ticket.requester || 'Not provided'}</td><td>${ticket.department}</td><td><span class="badge ${badge}">${ticket.priority || 'Normal'}</span></td><td><span class="badge ${statusBadge}">${ticket.status}</span></td><td>${renderTimeline(ticket)}</td><td>${moveControl}</td><td>${updateControl}</td></tr>`;
+        const activePriorityClass = ['Open', 'In Progress'].includes(ticket.status) && ticket.priority === 'Critical' ? 'priority-critical-row' : ['Open', 'In Progress'].includes(ticket.status) && ticket.priority === 'High' ? 'priority-high-row' : '';
+        return `<tr class="${overdue ? 'overdue-row' : ''} ${activePriorityClass}"><td>${ticket.ticket_id}</td><td><strong>${ticket.title}</strong><br><button class="details-button" onclick="openTicketDetails('${ticket.ticket_id}')">View details</button></td><td>${ticket.requester || 'Not provided'}</td><td>${ticket.department}</td><td><span class="badge ${badge}">${ticket.priority || 'Normal'}</span></td><td><span class="badge ${statusBadge}">${ticket.status}</span></td><td>${renderTimeline(ticket)}</td><td>${moveControl}</td><td>${updateControl}</td></tr>`;
       }).join('');
     }
 
@@ -428,7 +502,10 @@
       await loadDashboard();
     }
 
-    ['ticket-search', 'department-filter', 'status-filter', 'priority-filter'].forEach((id) => document.getElementById(id).addEventListener('input', renderTickets));
+    ['ticket-search', 'department-filter', 'status-filter', 'priority-filter', 'ticket-sort'].forEach((id) => document.getElementById(id).addEventListener('input', () => { ticketPage = 1; renderTickets(); }));
+    document.getElementById('ticket-page-size').addEventListener('change', event => { ticketPageSize = Number(event.target.value); ticketPage = 1; renderTickets(); });
+    document.getElementById('ticket-prev').addEventListener('click', () => { if (ticketPage > 1) { ticketPage -= 1; renderTickets(); } });
+    document.getElementById('ticket-next').addEventListener('click', () => { if (ticketPage < ticketTotalPages) { ticketPage += 1; renderTickets(); } });
     document.getElementById('user-search').addEventListener('input', renderUsers);
 
     loadCurrentUser().then(ok => ok && loadDashboard());
