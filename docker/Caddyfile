@@ -1,4 +1,4 @@
-{$TEMPORARY_HOSTNAME} {
+n8n-project-dev-2rd4r7.eastus.cloudapp.azure.com {
     encode gzip
 
     handle / {
@@ -51,7 +51,8 @@
         reverse_proxy 127.0.0.1:3000
     }
 
-    handle /assets/* {
+    handle /dashboard-assets/* {
+        uri replace /dashboard-assets /assets
         reverse_proxy 127.0.0.1:8080
     }
 
