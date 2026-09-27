@@ -108,3 +108,13 @@ The final acceptance checks are documented in `docs/acceptance-checklist.md`. Te
 4. Add GitHub Actions deployment.
 5. Capture final screenshots and demonstration evidence.
 6. Compare the delivered system with the original project brief.
+
+## GitHub Actions Deployment
+
+The workflow in `.github/workflows/deploy-azure.yml` deploys changes from `main` to the Azure VM. Configure these repository secrets before enabling it:
+
+- `AZURE_VM_HOST` — VM hostname or public IP
+- `AZURE_VM_USER` — SSH username
+- `AZURE_SSH_PRIVATE_KEY` — private SSH key matching the VM's authorized public key
+
+The workflow never copies `.env.azure`, Terraform state, Terraform plans, or local temporary files. Azure secrets remain on the VM and are managed through Key Vault.

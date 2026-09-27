@@ -1,0 +1,58 @@
+name: Deploy to Azure VM
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'auth-service/**'
+      - 'dashboard/**'
+      - 'docker/**'
+      - 'workflows/**'
+      - '.github/workflows/deploy-azure.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Terraform formatting
+        uses: hashicorp/setup-terraform@v3
+      - run: terraform -chdir=terraform fmt -check -recursive
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.AZURE_SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.AZURE_VM_HOST }}
+        run: |
+          test -n "$SSH_PRIVATE_KEY" || { echo "AZURE_SSH_PRIVATE_KEY is not configured"; exit 1; }
+          test -n "$SSH_HOST" || { echo "AZURE_VM_HOST is not configured"; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Sync application files
+        env:
+          SSH_HOST: ${{ secrets.AZURE_VM_HOST }}
+          SSH_USER: ${{ secrets.AZURE_VM_USER }}
+        run: |
+          test -n "$SSH_USER" || { echo "AZURE_VM_USER is not configured"; exit 1; }
+          rsync -az --delete \
+            --exclude='.env*' \
+            --exclude='terraform/*.tfstate*' \
+            --exclude='terraform/*.tfplan' \
+            --exclude='terraform/.terraform/' \
+            --exclude='tmp/' \
+            auth-service dashboard docker workflows \
+            "$SSH_USER@$SSH_HOST:/opt/n8n-project/"
+
+      - name: Restart services
+        env:
+          SSH_HOST: ${{ secrets.AZURE_VM_HOST }}
+          SSH_USER: ${{ secrets.AZURE_VM_USER }}
+        run: |
+          ssh "$SSH_USER@$SSH_HOST" \
+            'cd /opt/n8n-project && docker compose --env-file .env.azure -f docker/docker-compose.azure.yml up -d --build && docker ps --format "table {{.Names}}\t{{.Status}}"'
