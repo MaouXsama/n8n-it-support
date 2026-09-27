@@ -91,6 +91,14 @@ After deployment, add the required Key Vault secrets using `scripts/seed-keyvaul
 
 The final acceptance checks are documented in `docs/acceptance-checklist.md`. Test evidence is recorded in `docs/test-evidence.md`.
 
+## Project Status
+
+The application is deployed and operational on Azure. The final workflow exports are stored in `workflows/final-azure/`, and the public source repository is:
+
+`https://github.com/MaouXsama/n8n-it-support`
+
+The GitHub Actions deployment completed successfully. The live system uses Azure PostgreSQL, Azure Key Vault, n8n, the authentication service, the Masar-branded dashboards, and Gmail OAuth notifications.
+
 ## Important Files
 
 - `dashboard/` — user, admin, login, signup, and ticket pages
@@ -102,12 +110,18 @@ The final acceptance checks are documented in `docs/acceptance-checklist.md`. Te
 
 ## Finalization Checklist
 
-1. Export the final n8n workflows.
-2. Verify Key Vault references and Terraform outputs.
-3. Commit the complete project to GitHub.
-4. Add GitHub Actions deployment.
-5. Capture final screenshots and demonstration evidence.
-6. Compare the delivered system with the original project brief.
+Completed:
+
+- Final n8n workflows exported.
+- Terraform outputs and Key Vault references verified.
+- Complete project committed to GitHub.
+- GitHub Actions deployment added and verified successfully.
+
+Remaining delivery evidence:
+
+1. Capture final screenshots and demonstration evidence.
+2. Compare the delivered system with the original project brief.
+3. Assemble the final handover package.
 
 ## GitHub Actions Deployment
 
