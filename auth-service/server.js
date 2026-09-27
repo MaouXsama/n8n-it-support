@@ -46,6 +46,29 @@ function send(res, status, body) { res.writeHead(status, {'Content-Type':'applic
 function read(req) { return new Promise((resolve,reject)=>{let b='';req.on('data',c=>b+=c);req.on('end',()=>{try{resolve(b?JSON.parse(b):{})}catch(e){reject(e)}})}) }
 function token(user) { return jwt.sign({id:user.id,username:user.username,email:user.email,role:user.role,department:user.department}, secret, {expiresIn:'8h'}); }
 function authUser(req) { const value=req.headers.authorization||''; if(!value.startsWith('Bearer ')) return null; try{return jwt.verify(value.slice(7),secret)}catch{return null} }
+function ticketWhere(session, filters={}) {
+  const clauses=['archived=FALSE'];
+  const values=[];
+  const add=(clause,value)=>{values.push(value);clauses.push(clause.replace('?',`$${values.length}`));};
+  if(session.role==='department_admin') add('department=?',session.department);
+  if(session.role==='user') add('LOWER(requester)=LOWER(?)',session.email);
+  if(filters.search){values.push(`%${filters.search}%`);const p=`$${values.length}`;clauses.push(`(ticket_id ILIKE ${p} OR title ILIKE ${p} OR requester ILIKE ${p})`);}
+  if(filters.department) add('department=?',filters.department);
+  if(filters.status) add('status=?',filters.status);
+  if(filters.priority) add('priority=?',filters.priority);
+  return {sql:clauses.join(' AND '),values};
+}
+function ticketOrder(mode) {
+  const priority="CASE priority WHEN 'Critical' THEN 0 WHEN 'High' THEN 1 WHEN 'Normal' THEN 2 WHEN 'Low' THEN 3 ELSE 4 END";
+  const active="status IN ('Open','In Progress')";
+  const activity="COALESCE(completed_at,created_at)";
+  if(mode==='newest') return 'created_at DESC';
+  if(mode==='oldest') return 'created_at ASC';
+  if(mode==='sla') return `CASE WHEN ${active} THEN 0 WHEN status='Completed' THEN 1 WHEN status='Cancelled' THEN 2 ELSE 3 END, CASE WHEN ${active} THEN due_at END ASC NULLS LAST, ${priority}, ${activity} DESC`;
+  if(mode==='priority') return `CASE WHEN ${active} THEN 0 WHEN status='Completed' THEN 1 WHEN status='Cancelled' THEN 2 ELSE 3 END, ${priority}, CASE WHEN ${active} THEN due_at END ASC NULLS LAST, ${activity} DESC`;
+  if(mode==='recently-completed') return `CASE WHEN status='Completed' THEN 0 WHEN ${active} THEN 1 WHEN status='Cancelled' THEN 2 ELSE 3 END, CASE WHEN status='Completed' THEN completed_at END DESC NULLS LAST, CASE WHEN ${active} THEN due_at END ASC NULLS LAST, created_at DESC`;
+  return `CASE WHEN ${active} AND due_at<=NOW() THEN 0 WHEN ${active} THEN 1 WHEN status='Completed' THEN 2 WHEN status='Cancelled' THEN 3 ELSE 4 END, CASE WHEN ${active} THEN due_at END ASC NULLS LAST, ${priority}, ${activity} DESC`;
+}
 async function triggerCompletionEmail(ticketId) {
   try {
     const response = await fetch('https://n8n-project-dev-2rd4r7.eastus.cloudapp.azure.com/webhook/ticket-status', {
@@ -84,7 +107,7 @@ async function handler(req,res) {
     }
     if (req.method === 'GET' && req.url.startsWith('/tickets')) {
       const session=authUser(req); if(!session) return send(res,401,{message:'Authentication required'});
-      const url=new URL(req.url,'http://localhost'); const search=url.searchParams.get('search')||''; const page=Math.max(1,Number(url.searchParams.get('page')||1)); const limit=Math.min(100,Math.max(1,Number(url.searchParams.get('limit')||25))); const offset=(page-1)*limit;
+      const url=new URL(req.url,'http://localhost');
       if (url.pathname === '/tickets/notifications') {
         if(session.role!=='full_admin') return send(res,403,{message:'Full admin access required'});
         const n=await pool.query('SELECT n.* FROM public.notifications n JOIN public.tickets t ON t.ticket_id=n.ticket_id WHERE t.archived=FALSE ORDER BY n.sent_at DESC LIMIT 200'); return send(res,200,{notifications:n.rows});
@@ -93,12 +116,53 @@ async function handler(req,res) {
         if(!url.searchParams.get('ticket_id')) return send(res,400,{message:'ticket_id is required'});
         const c=await pool.query('SELECT * FROM ticket_comments WHERE ticket_id=$1 ORDER BY created_at ASC',[url.searchParams.get('ticket_id')]); return send(res,200,{comments:c.rows});
       }
-      let q;
-      const term=`%${search}%`;
-      if (session.role === 'full_admin') q=await pool.query('SELECT * FROM public.tickets WHERE archived=FALSE AND (ticket_id ILIKE $1 OR title ILIKE $1 OR requester ILIKE $1) ORDER BY created_at DESC LIMIT $2 OFFSET $3',[term,limit,offset]);
-      else if (session.role === 'department_admin') q=await pool.query('SELECT * FROM public.tickets WHERE archived=FALSE AND department=$1 AND (ticket_id ILIKE $2 OR title ILIKE $2 OR requester ILIKE $2) ORDER BY created_at DESC LIMIT $3 OFFSET $4',[session.department,term,limit,offset]);
-      else q=await pool.query('SELECT * FROM public.tickets WHERE archived=FALSE AND LOWER(requester)=LOWER($1) AND (ticket_id ILIKE $2 OR title ILIKE $2) ORDER BY created_at DESC LIMIT $3 OFFSET $4',[session.email,term,limit,offset]);
-      return send(res,200,{tickets:q.rows,page,limit});
+      if (url.pathname === '/tickets/metrics') {
+        const scoped=ticketWhere(session);
+        const metrics=await pool.query(`SELECT
+          COUNT(*) FILTER (WHERE status='Open')::int AS total_open,
+          COUNT(*) FILTER (WHERE status='In Progress')::int AS total_in_progress,
+          COUNT(*) FILTER (WHERE status='Open' AND department='Networking')::int AS networking_open,
+          COUNT(*) FILTER (WHERE status='Open' AND department='IT Helpdesk')::int AS helpdesk_open,
+          COUNT(*) FILTER (WHERE status='Open' AND department='Software')::int AS software_open,
+          COUNT(*) FILTER (WHERE status='In Progress' AND department='Networking')::int AS networking_in_progress,
+          COUNT(*) FILTER (WHERE status='In Progress' AND department='IT Helpdesk')::int AS helpdesk_in_progress,
+          COUNT(*) FILTER (WHERE status='In Progress' AND department='Software')::int AS software_in_progress,
+          COUNT(*) FILTER (WHERE department='Networking')::int AS networking_total,
+          COUNT(*) FILTER (WHERE department='IT Helpdesk')::int AS helpdesk_total,
+          COUNT(*) FILTER (WHERE department='Software')::int AS software_total,
+          COUNT(*) FILTER (WHERE status='Completed' AND completed_at AT TIME ZONE 'Asia/Riyadh'>=date_trunc('day',NOW() AT TIME ZONE 'Asia/Riyadh'))::int AS completed_today,
+          COUNT(*) FILTER (WHERE status='Completed' AND completed_at>=NOW()-INTERVAL '7 days')::int AS completed_last_7_days,
+          COUNT(*) FILTER (WHERE status IN ('Open','In Progress') AND due_at<=NOW())::int AS overdue_open,
+          COUNT(*) FILTER (WHERE created_at AT TIME ZONE 'Asia/Riyadh'>=date_trunc('day',NOW() AT TIME ZONE 'Asia/Riyadh'))::int AS created_today,
+          COUNT(*) FILTER (WHERE status='Completed' AND completed_at IS NOT NULL AND completed_at<=due_at)::int AS completed_within_sla,
+          COUNT(*) FILTER (WHERE status='Completed' AND completed_at IS NOT NULL AND completed_at>due_at)::int AS completed_after_sla,
+          COALESCE(ROUND(100.0*COUNT(*) FILTER (WHERE status='Completed' AND completed_at<=due_at)/NULLIF(COUNT(*) FILTER (WHERE status='Completed'),0),1),0) AS sla_compliance_percentage
+          FROM public.tickets WHERE ${scoped.sql}`,scoped.values);
+        return send(res,200,{metrics:metrics.rows[0]});
+      }
+      const allowedStatuses=['Open','In Progress','Completed','Cancelled'];
+      const allowedPriorities=['Critical','High','Normal','Low'];
+      const allowedDepartments=['Networking','IT Helpdesk','Software'];
+      const filters={
+        search:(url.searchParams.get('search')||'').trim(),
+        department:allowedDepartments.includes(url.searchParams.get('department'))?url.searchParams.get('department'):'',
+        status:allowedStatuses.includes(url.searchParams.get('status'))?url.searchParams.get('status'):'',
+        priority:allowedPriorities.includes(url.searchParams.get('priority'))?url.searchParams.get('priority'):''
+      };
+      const requestedPage=Math.max(1,parseInt(url.searchParams.get('page'),10)||1);
+      const limit=Math.min(100,Math.max(1,parseInt(url.searchParams.get('limit'),10)||25));
+      const scoped=ticketWhere(session,filters);
+      const countResult=await pool.query(`SELECT COUNT(*)::int AS total FROM public.tickets WHERE ${scoped.sql}`,scoped.values);
+      const total=countResult.rows[0].total;
+      const totalPages=Math.max(1,Math.ceil(total/limit));
+      const page=Math.min(requestedPage,totalPages);
+      const offset=(page-1)*limit;
+      const values=[...scoped.values,limit,offset];
+      const limitParam=`$${scoped.values.length+1}`;
+      const offsetParam=`$${scoped.values.length+2}`;
+      const order=ticketOrder(url.searchParams.get('sort')||'newest');
+      const q=await pool.query(`SELECT * FROM public.tickets WHERE ${scoped.sql} ORDER BY ${order} LIMIT ${limitParam} OFFSET ${offsetParam}`,values);
+      return send(res,200,{tickets:q.rows,page,limit,total,totalPages});
     }
     if (req.method === 'POST' && req.url === '/tickets/reassign') {
       const session=authUser(req); if(!session || !['full_admin','department_admin'].includes(session.role)) return send(res,403,{message:'Admin access required'});

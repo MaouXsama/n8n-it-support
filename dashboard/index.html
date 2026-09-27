@@ -211,7 +211,7 @@
     </div>
 
     <div class="card">
-      <div class="label">Overdue Open Tickets</div>
+      <div class="label">Overdue Active Tickets</div>
       <div class="value overdue" id="overdue_open">-</div>
     </div>
 
@@ -298,6 +298,9 @@
     let ticketPage = 1;
     let ticketPageSize = 10;
     let ticketTotalPages = 1;
+    let ticketTotal = 0;
+    let ticketSearchTimer = null;
+    let dashboardRequestId = 0;
 
     function openTicketDetails(ticketId) {
       const ticket = dashboardData.tickets.find(t => t.ticket_id === ticketId);
@@ -354,73 +357,48 @@
     }
 
     async function loadDashboard() {
-      const response = await fetch('/api/tickets?limit=100', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
-
-      const data = await response.json();
-      dashboardData.tickets = data.tickets || [];
-      dashboardData.metrics = {
-        total_open: dashboardData.tickets.filter(t => t.status === 'Open').length,
-        networking_open: dashboardData.tickets.filter(t => t.status === 'Open' && t.department === 'Networking').length,
-        helpdesk_open: dashboardData.tickets.filter(t => t.status === 'Open' && t.department === 'IT Helpdesk').length,
-        software_open: dashboardData.tickets.filter(t => t.status === 'Open' && t.department === 'Software').length,
-        total_in_progress: dashboardData.tickets.filter(t => t.status === 'In Progress').length,
-        networking_in_progress: dashboardData.tickets.filter(t => t.status === 'In Progress' && t.department === 'Networking').length,
-        helpdesk_in_progress: dashboardData.tickets.filter(t => t.status === 'In Progress' && t.department === 'IT Helpdesk').length,
-        software_in_progress: dashboardData.tickets.filter(t => t.status === 'In Progress' && t.department === 'Software').length,
-        networking_total: dashboardData.tickets.filter(t => t.department === 'Networking').length,
-        helpdesk_total: dashboardData.tickets.filter(t => t.department === 'IT Helpdesk').length,
-        software_total: dashboardData.tickets.filter(t => t.department === 'Software').length,
-        completed_today: dashboardData.tickets.filter(t => t.status === 'Completed' && new Date(t.completed_at) >= new Date(new Date().setHours(0,0,0,0))).length,
-        completed_last_7_days: dashboardData.tickets.filter(t => t.status === 'Completed' && new Date(t.completed_at) >= new Date(Date.now() - 7 * 86400000)).length,
-        overdue_open: dashboardData.tickets.filter(ticketIsOverdue).length,
-        created_today: dashboardData.tickets.filter(t => new Date(t.created_at) >= new Date(new Date().setHours(0,0,0,0))).length,
-        completed_within_sla: dashboardData.tickets.filter(t => t.status === 'Completed' && new Date(t.completed_at) <= new Date(t.due_at)).length,
-        completed_after_sla: dashboardData.tickets.filter(t => t.status === 'Completed' && new Date(t.completed_at) > new Date(t.due_at)).length,
-        sla_compliance_percentage: (() => { const completed = dashboardData.tickets.filter(t => t.status === 'Completed'); return completed.length ? Math.round(1000 * completed.filter(t => new Date(t.completed_at) <= new Date(t.due_at)).length / completed.length) / 10 : 0; })()
+      const requestId = ++dashboardRequestId;
+      const params = new URLSearchParams({
+        page: String(ticketPage),
+        limit: String(ticketPageSize),
+        sort: document.getElementById('ticket-sort').value
+      });
+      const filters = {
+        search: document.getElementById('ticket-search').value.trim(),
+        department: document.getElementById('department-filter').value,
+        status: document.getElementById('status-filter').value,
+        priority: document.getElementById('priority-filter').value
       };
-      for (const key of Object.keys(dashboardData.metrics)) {
-        const element = document.getElementById(key);
-
-        if (element) {
-          element.textContent = key === 'sla_compliance_percentage' ? `${dashboardData.metrics[key]}%` : dashboardData.metrics[key];
+      Object.entries(filters).forEach(([key, value]) => { if (value) params.set(key, value); });
+      const headers = { Authorization: `Bearer ${sessionStorage.getItem('token')}` };
+      const target = document.getElementById('ticket-rows');
+      try {
+        const [ticketsResponse, metricsResponse] = await Promise.all([
+          fetch(`/api/tickets?${params}`, { headers }),
+          fetch('/api/tickets/metrics', { headers })
+        ]);
+        if (!ticketsResponse.ok || !metricsResponse.ok) throw new Error('Dashboard data could not be loaded');
+        const [ticketsData, metricsData] = await Promise.all([ticketsResponse.json(), metricsResponse.json()]);
+        if (requestId !== dashboardRequestId) return;
+        dashboardData.tickets = ticketsData.tickets || [];
+        dashboardData.metrics = metricsData.metrics || {};
+        ticketPage = Number(ticketsData.page) || 1;
+        ticketPageSize = Number(ticketsData.limit) || ticketPageSize;
+        ticketTotal = Number(ticketsData.total) || 0;
+        ticketTotalPages = Number(ticketsData.totalPages) || 1;
+        for (const key of Object.keys(dashboardData.metrics)) {
+          const element = document.getElementById(key);
+          if (element) element.textContent = key === 'sla_compliance_percentage' ? `${Number(dashboardData.metrics[key]) || 0}%` : dashboardData.metrics[key];
         }
+        renderTickets();
+      } catch (error) {
+        if (requestId !== dashboardRequestId) return;
+        target.innerHTML = `<tr><td colspan="9" class="muted">${error.message}. Please refresh the page.</td></tr>`;
       }
-      renderTickets();
     }
 
     function ticketIsOverdue(ticket) {
       return ['Open', 'In Progress'].includes(ticket.status) && ticket.due_at && new Date(ticket.due_at) <= new Date();
-    }
-
-    function priorityRank(ticket) {
-      return { Critical: 0, High: 1, Normal: 2, Low: 3 }[ticket.priority || 'Normal'] ?? 2;
-    }
-
-    function sortTickets(tickets, mode) {
-      const time = value => value ? new Date(value).getTime() : 0;
-      const dueTime = ticket => ticket.due_at ? time(ticket.due_at) : Number.MAX_SAFE_INTEGER;
-      return [...tickets].sort((a, b) => {
-        if (mode === 'newest') return time(b.created_at) - time(a.created_at);
-        if (mode === 'oldest') return time(a.created_at) - time(b.created_at);
-        if (mode === 'sla') return dueTime(a) - dueTime(b) || time(b.created_at) - time(a.created_at);
-        if (mode === 'priority') return priorityRank(a) - priorityRank(b) || time(b.created_at) - time(a.created_at);
-        if (mode === 'recently-completed') {
-          const aCompleted = a.status === 'Completed' ? 0 : 1;
-          const bCompleted = b.status === 'Completed' ? 0 : 1;
-          return aCompleted - bCompleted || time(b.completed_at || b.created_at) - time(a.completed_at || a.created_at);
-        }
-        const operationalRank = ticket => {
-          if (ticketIsOverdue(ticket)) return 0;
-          if (['Open', 'In Progress'].includes(ticket.status)) return 1 + priorityRank(ticket);
-          if (ticket.status === 'Completed') return 5;
-          if (ticket.status === 'Cancelled') return 6;
-          return 7;
-        };
-        const rankDifference = operationalRank(a) - operationalRank(b);
-        if (rankDifference) return rankDifference;
-        if (['Open', 'In Progress'].includes(a.status) && ['Open', 'In Progress'].includes(b.status)) return dueTime(a) - dueTime(b) || time(b.created_at) - time(a.created_at);
-        return time(b.completed_at || b.created_at) - time(a.completed_at || a.created_at);
-      });
     }
 
     function formatTimelineDate(value) {
@@ -441,24 +419,12 @@
     }
 
     function renderTickets() {
-      const query = document.getElementById('ticket-search').value.toLowerCase();
-      const department = document.getElementById('department-filter').value;
-      const status = document.getElementById('status-filter').value;
-      const priority = document.getElementById('priority-filter').value;
-      const filteredRows = dashboardData.tickets.filter((ticket) => {
-        const text = `${ticket.ticket_id} ${ticket.title} ${ticket.requester}`.toLowerCase();
-        return (!query || text.includes(query)) && (!department || ticket.department === department) && (!status || ticket.status === status) && (!priority || ticket.priority === priority);
-      });
-      const sortedRows = sortTickets(filteredRows, document.getElementById('ticket-sort').value);
-      const totalPages = Math.max(1, Math.ceil(sortedRows.length / ticketPageSize));
-      ticketTotalPages = totalPages;
-      ticketPage = Math.min(ticketPage, totalPages);
       const start = (ticketPage - 1) * ticketPageSize;
-      const rows = sortedRows.slice(start, start + ticketPageSize);
-      document.getElementById('ticket-range').textContent = sortedRows.length ? `Showing ${start + 1}–${Math.min(start + ticketPageSize, sortedRows.length)} of ${sortedRows.length} tickets` : 'Showing 0 tickets';
-      document.getElementById('ticket-page-label').textContent = `Page ${ticketPage} of ${totalPages}`;
+      const rows = dashboardData.tickets;
+      document.getElementById('ticket-range').textContent = ticketTotal ? `Showing ${start + 1}–${start + rows.length} of ${ticketTotal} tickets` : 'Showing 0 tickets';
+      document.getElementById('ticket-page-label').textContent = `Page ${ticketPage} of ${ticketTotalPages}`;
       document.getElementById('ticket-prev').disabled = ticketPage <= 1;
-      document.getElementById('ticket-next').disabled = ticketPage >= totalPages;
+      document.getElementById('ticket-next').disabled = ticketPage >= ticketTotalPages;
       const target = document.getElementById('ticket-rows');
       if (!rows.length) { target.innerHTML = '<tr><td colspan="9" class="muted">No matching tickets</td></tr>'; return; }
       target.innerHTML = rows.map((ticket) => {
@@ -502,10 +468,14 @@
       await loadDashboard();
     }
 
-    ['ticket-search', 'department-filter', 'status-filter', 'priority-filter', 'ticket-sort'].forEach((id) => document.getElementById(id).addEventListener('input', () => { ticketPage = 1; renderTickets(); }));
-    document.getElementById('ticket-page-size').addEventListener('change', event => { ticketPageSize = Number(event.target.value); ticketPage = 1; renderTickets(); });
-    document.getElementById('ticket-prev').addEventListener('click', () => { if (ticketPage > 1) { ticketPage -= 1; renderTickets(); } });
-    document.getElementById('ticket-next').addEventListener('click', () => { if (ticketPage < ticketTotalPages) { ticketPage += 1; renderTickets(); } });
+    document.getElementById('ticket-search').addEventListener('input', () => {
+      clearTimeout(ticketSearchTimer);
+      ticketSearchTimer = setTimeout(() => { ticketPage = 1; loadDashboard(); }, 300);
+    });
+    ['department-filter', 'status-filter', 'priority-filter', 'ticket-sort'].forEach((id) => document.getElementById(id).addEventListener('change', () => { ticketPage = 1; loadDashboard(); }));
+    document.getElementById('ticket-page-size').addEventListener('change', event => { ticketPageSize = Number(event.target.value); ticketPage = 1; loadDashboard(); });
+    document.getElementById('ticket-prev').addEventListener('click', () => { if (ticketPage > 1) { ticketPage -= 1; loadDashboard(); } });
+    document.getElementById('ticket-next').addEventListener('click', () => { if (ticketPage < ticketTotalPages) { ticketPage += 1; loadDashboard(); } });
     document.getElementById('user-search').addEventListener('input', renderUsers);
 
     loadCurrentUser().then(ok => ok && loadDashboard());
