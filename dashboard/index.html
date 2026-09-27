@@ -115,6 +115,7 @@
     .timeline-label { color: #667085; font-size: 12px; font-weight: 800; }
     .timeline-value { font-size: 12px; font-weight: 700; }
     .timeline-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+    .timeline-created { background: #e8eef7; color: #334155; }
     .timeline-due { background: #ffedd5; color: #c2410c; }
     .timeline-completed { background: #dcfce7; color: #16723b; }
     .timeline-late { background: #fee2e2; color: #991b1b; }
@@ -364,7 +365,7 @@
     }
 
     function renderTimeline(ticket) {
-      const created = `<div class="timeline-row"><span class="timeline-label">Created:</span><span class="timeline-value">${formatTimelineDate(ticket.created_at)}</span></div>`;
+      const created = `<div class="timeline-row"><span class="timeline-label">Created:</span><span class="timeline-badge timeline-created">${formatTimelineDate(ticket.created_at)}</span></div>`;
       if (ticket.status === 'Completed') {
         const completedAfterSla = ticket.completed_at && ticket.due_at && new Date(ticket.completed_at) > new Date(ticket.due_at);
         const completedClass = completedAfterSla ? 'timeline-late' : 'timeline-completed';
