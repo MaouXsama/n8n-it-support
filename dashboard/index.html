@@ -383,9 +383,8 @@
 
     async function reassignTicket(ticketId) {
       const department = document.getElementById(`dep-${ticketId}`).value;
-      const reason = prompt('Reason for reassignment (optional):') || '';
       if (!confirm(`Move ${ticketId} to ${department}?`)) return;
-      const response = await fetch('/api/tickets/reassign', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` }, body: JSON.stringify({ ticket_id: ticketId, department, reason }) });
+      const response = await fetch('/api/tickets/reassign', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` }, body: JSON.stringify({ ticket_id: ticketId, department, reason: '' }) });
       const data = await response.json();
       if (!response.ok) { alert(data.message || 'Reassignment failed'); return; }
       alert(`Ticket ${ticketId} moved to ${department}`);
@@ -394,9 +393,8 @@
 
     async function updateTicketStatus(ticketId) {
       const status = document.getElementById(`status-${ticketId}`).value;
-      const resolution = status === 'Completed' ? (prompt('Resolution comment (optional):') || '') : '';
       if (!confirm(`Change ${ticketId} to ${status}?`)) return;
-      const response = await fetch('/api/tickets/status', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` }, body: JSON.stringify({ ticket_id: ticketId, status, resolution }) });
+      const response = await fetch('/api/tickets/status', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` }, body: JSON.stringify({ ticket_id: ticketId, status, resolution: '' }) });
       const data = await response.json();
       if (!response.ok) { alert(data.message || 'Status update failed'); return; }
       alert(`Ticket ${ticketId} updated to ${status}.`);
