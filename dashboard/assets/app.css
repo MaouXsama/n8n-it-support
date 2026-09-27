@@ -19,14 +19,14 @@
 
 /* SLA analytics modal */
 .sla-modal{background:rgba(15,23,42,.5)!important;backdrop-filter:blur(5px)}
-.sla-modal-card{width:min(980px,100%)!important;padding:30px!important;border:1px solid #d9e1eb!important;border-radius:22px!important;background:#fff!important;box-shadow:0 30px 90px rgba(15,23,42,.28)!important}
-.sla-modal-header{padding-bottom:20px;border-bottom:1px solid #e7ebf0}
+.sla-modal-card{width:min(980px,100%)!important;max-height:94vh!important;padding:24px!important;border:1px solid #d9e1eb!important;border-radius:22px!important;background:#fff!important;box-shadow:0 30px 90px rgba(15,23,42,.28)!important}
+.sla-modal-header{padding-bottom:14px;border-bottom:1px solid #e7ebf0}
 .sla-modal-eyebrow{margin-bottom:6px;color:#68778d;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
 .sla-modal-header h2{color:#10233f;font-size:25px;letter-spacing:-.035em}
 .sla-modal-header p{margin-top:6px!important;color:#718096!important;font-size:13px!important}
 .sla-modal .modal-close-button{width:40px!important;min-width:40px!important;height:40px;min-height:40px;border-radius:10px!important;background:#f7f9fc!important;color:#475569!important;box-shadow:0 4px 12px rgba(51,65,85,.1)!important}
 .sla-modal .modal-close-button:hover{background:#e9eef4!important;color:#1f2937!important}
-.sla-chart-toolbar{margin:18px 0 16px!important}
+.sla-chart-toolbar{margin:14px 0 12px!important}
 .sla-periods{gap:3px!important;padding:4px!important;border-color:#dbe2ea!important;border-radius:11px!important;background:#f1f4f8!important}
 .sla-period-button{min-width:70px!important;min-height:36px!important;margin:0!important;padding:7px 13px!important;border:0!important;border-radius:8px!important;background:transparent!important;color:#64748b!important;box-shadow:none!important;font-size:13px!important;font-weight:800!important;filter:none!important;transform:none!important}
 .sla-period-button:hover{background:#e2e7ed!important;color:#25344a!important;box-shadow:none!important;filter:none!important;transform:none!important}
@@ -35,12 +35,13 @@
 .sla-chart-legend span{padding:7px 10px;border:1px solid #e2e8f0;border-radius:999px;background:#f8fafc;color:#536174;font-size:11px}
 .sla-chart-legend i{width:9px!important;height:9px!important;border-radius:50%!important}
 .sla-chart-summary{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 16px!important}
-.sla-summary-item{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:58px;padding:10px 13px;border:1px solid #e2e8f0;border-radius:11px;background:#f8fafc;color:#334155}
+.sla-summary-item{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;padding:9px 13px;border:1px solid #e2e8f0;border-radius:11px;background:#f8fafc;color:#334155}
 .sla-summary-item small{color:#69778b;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.035em}
 .sla-summary-item strong{font-size:20px;letter-spacing:-.025em}
 .sla-summary-good strong{color:#16803f}.sla-summary-bad strong{color:#c93227}
 .sla-summary-loading{grid-column:1/-1;padding:12px;color:#64748b;font-size:13px;font-weight:700}
-.sla-chart-stage{min-height:340px!important;padding:18px 12px 5px!important;border-color:#dde4ed!important;border-radius:16px!important;background:linear-gradient(180deg,#fbfcfe,#f8fafc)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.sla-chart-stage{min-height:290px!important;padding:12px 12px 3px!important;border-color:#dde4ed!important;border-radius:16px!important;background:linear-gradient(180deg,#fbfcfe,#f8fafc)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.sla-chart-stage svg{min-height:270px!important}
 .sla-chart-grid{stroke:#dfe5ec!important}.sla-chart-axis-label{fill:#6b7a90!important;font-size:10px!important;font-weight:700!important}
 @media(max-width:680px){.sla-modal-card{padding:20px!important}.sla-chart-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.sla-period-button{min-width:62px!important}.sla-chart-legend{flex-wrap:wrap}}
 @media(max-width:720px){.header-action{width:48px!important;min-width:48px!important;height:48px!important;min-height:48px!important}}
