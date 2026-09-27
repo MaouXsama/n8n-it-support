@@ -52,9 +52,11 @@
       <div class="user-pagination">
         <div class="pagination-summary" id="ticket-range">Showing 0 tickets</div>
         <div class="pagination-controls">
+          <button class="utility-button pagination-icon" id="ticket-first" type="button" aria-label="First tickets page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6v12M18 6l-6 6 6 6"/></svg></button>
           <button class="utility-button pagination-icon" id="ticket-prev" type="button" aria-label="Previous tickets page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
           <span class="pagination-page" id="ticket-page-label">Page 1 of 1</span>
           <button class="utility-button pagination-icon" id="ticket-next" type="button" aria-label="Next tickets page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+          <button class="utility-button pagination-icon" id="ticket-last" type="button" aria-label="Last tickets page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6v12M6 6l6 6-6 6"/></svg></button>
         </div>
       </div>
     </div>
@@ -77,8 +79,10 @@
       const start=(ticketPage-1)*ticketPageSize;
       document.getElementById('ticket-range').textContent=total?`Showing ${start+1}–${start+rows.length} of ${total} tickets`:'Showing 0 tickets';
       document.getElementById('ticket-page-label').textContent=`Page ${ticketPage} of ${ticketTotalPages}`;
+      document.getElementById('ticket-first').disabled=ticketPage<=1;
       document.getElementById('ticket-prev').disabled=ticketPage<=1;
       document.getElementById('ticket-next').disabled=ticketPage>=ticketTotalPages;
+      document.getElementById('ticket-last').disabled=ticketPage>=ticketTotalPages;
       if(!rows.length){document.getElementById('tickets').innerHTML='<p class="muted">No tickets yet.</p>';return;}
       document.getElementById('tickets').innerHTML=rows.map(ticket=>{
         const status=String(ticket.status||'Open').toLowerCase().replace(/\s+/g,'-');
@@ -92,7 +96,7 @@
     async function loadTickets(focusList=false){
       const list=document.getElementById('ticket-list');
       try{
-        const response=await fetch(`/api/tickets?page=${ticketPage}&limit=${ticketPageSize}&sort=operational`,{headers});
+        const response=await fetch(`/api/tickets?page=${ticketPage}&limit=${ticketPageSize}&sort=created-desc`,{headers});
         if(!response.ok) throw new Error('Tickets could not be loaded');
         renderTickets(await response.json());
         if(focusList) list.closest('.card').scrollIntoView({behavior:'smooth',block:'start'});
@@ -108,8 +112,10 @@
     }
 
     document.getElementById('signout').addEventListener('click',()=>{sessionStorage.clear();location.href='/login'});
+    document.getElementById('ticket-first').addEventListener('click',()=>{if(ticketPage>1){ticketPage=1;loadTickets(true);}});
     document.getElementById('ticket-prev').addEventListener('click',()=>{if(ticketPage>1){ticketPage-=1;loadTickets(true);}});
     document.getElementById('ticket-next').addEventListener('click',()=>{if(ticketPage<ticketTotalPages){ticketPage+=1;loadTickets(true);}});
+    document.getElementById('ticket-last').addEventListener('click',()=>{if(ticketPage<ticketTotalPages){ticketPage=ticketTotalPages;loadTickets(true);}});
     initialize();
   </script>
 </body>

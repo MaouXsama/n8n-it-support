@@ -312,9 +312,11 @@
     <div class="ticket-pagination">
       <div class="pagination-summary" id="ticket-range">Showing 0 tickets</div>
       <div class="pagination-controls">
+        <button class="utility-button pagination-icon" id="ticket-first" type="button" aria-label="First tickets page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6v12M18 6l-6 6 6 6"/></svg></button>
         <button class="utility-button pagination-icon" id="ticket-prev" type="button" aria-label="Previous page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
         <span class="pagination-page" id="ticket-page-label">Page 1 of 1</span>
         <button class="utility-button pagination-icon" id="ticket-next" type="button" aria-label="Next page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+        <button class="utility-button pagination-icon" id="ticket-last" type="button" aria-label="Last tickets page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6v12M6 6l6 6-6 6"/></svg></button>
       </div>
     </div>
   </section>
@@ -348,7 +350,7 @@
     <div class="table-wrap"><table id="users-table"><colgroup><col style="width:19%"><col style="width:13%"><col style="width:23%"><col style="width:14%"><col style="width:13%"><col style="width:9%"><col style="width:9%"></colgroup><thead><tr><th data-user-sort="name"><button class="sort-header user-sort-header" type="button" data-user-sort="name">Name <span class="sort-indicator"></span></button></th><th data-user-sort="username"><button class="sort-header user-sort-header" type="button" data-user-sort="username">Username <span class="sort-indicator"></span></button></th><th data-user-sort="email"><button class="sort-header user-sort-header" type="button" data-user-sort="email">Email <span class="sort-indicator"></span></button></th><th data-user-sort="role"><button class="sort-header user-sort-header" type="button" data-user-sort="role">Role <span class="sort-indicator"></span></button></th><th data-user-sort="department"><button class="sort-header user-sort-header" type="button" data-user-sort="department">Department <span class="sort-indicator"></span></button></th><th data-user-sort="status"><button class="sort-header user-sort-header" type="button" data-user-sort="status">Status <span class="sort-indicator"></span></button></th><th data-user-sort="registered"><button class="sort-header user-sort-header" type="button" data-user-sort="registered">Registered <span class="sort-indicator"></span></button></th></tr></thead><tbody id="user-rows"></tbody></table></div>
     <div class="ticket-pagination">
       <div class="pagination-summary" id="user-range">Showing 0 users</div>
-      <div class="pagination-controls"><button class="utility-button pagination-icon" id="user-prev" type="button" aria-label="Previous users page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><span class="pagination-page" id="user-page-label">Page 1 of 1</span><button class="utility-button pagination-icon" id="user-next" type="button" aria-label="Next users page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div>
+      <div class="pagination-controls"><button class="utility-button pagination-icon" id="user-first" type="button" aria-label="First users page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6v12M18 6l-6 6 6 6"/></svg></button><button class="utility-button pagination-icon" id="user-prev" type="button" aria-label="Previous users page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><span class="pagination-page" id="user-page-label">Page 1 of 1</span><button class="utility-button pagination-icon" id="user-next" type="button" aria-label="Next users page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button><button class="utility-button pagination-icon" id="user-last" type="button" aria-label="Last users page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6v12M6 6l6 6-6 6"/></svg></button></div>
     </div>
   </section>
   </main>
@@ -467,8 +469,10 @@
       const pageUsers = users.slice(start, start + userPageSize);
       document.getElementById('user-range').textContent = users.length ? `Showing ${start + 1}–${start + pageUsers.length} of ${users.length} users` : 'Showing 0 users';
       document.getElementById('user-page-label').textContent = `Page ${userPage} of ${totalPages}`;
+      document.getElementById('user-first').disabled = userPage <= 1;
       document.getElementById('user-prev').disabled = userPage <= 1;
       document.getElementById('user-next').disabled = userPage >= totalPages;
+      document.getElementById('user-last').disabled = userPage >= totalPages;
       document.getElementById('user-rows').innerHTML = pageUsers.map(user => {
         const status = user.active ? 'Active' : 'Inactive';
         const registered = user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { timeZone: 'Asia/Riyadh' }) : '—';
@@ -756,8 +760,10 @@
       const rows = dashboardData.tickets;
       document.getElementById('ticket-range').textContent = ticketTotal ? `Showing ${start + 1}–${start + rows.length} of ${ticketTotal} tickets` : 'Showing 0 tickets';
       document.getElementById('ticket-page-label').textContent = `Page ${ticketPage} of ${ticketTotalPages}`;
+      document.getElementById('ticket-first').disabled = ticketPage <= 1;
       document.getElementById('ticket-prev').disabled = ticketPage <= 1;
       document.getElementById('ticket-next').disabled = ticketPage >= ticketTotalPages;
+      document.getElementById('ticket-last').disabled = ticketPage >= ticketTotalPages;
       const target = document.getElementById('ticket-rows');
       if (!rows.length) { target.innerHTML = '<tr><td colspan="10" class="muted">No matching tickets</td></tr>'; return; }
       target.innerHTML = rows.map((ticket) => {
@@ -831,12 +837,16 @@
     document.getElementById('user-filter-apply').addEventListener('click', applyUserFilters);
     document.getElementById('user-filter-clear').addEventListener('click', clearUserFilters);
     document.getElementById('user-search').addEventListener('keydown', event => { if (event.key === 'Enter') applyUserFilters(); });
+    document.getElementById('user-first').addEventListener('click', () => { if (userPage > 1) { userPage = 1; renderUsers(); } });
     document.getElementById('user-prev').addEventListener('click', () => { if (userPage > 1) { userPage -= 1; renderUsers(); } });
     document.getElementById('user-next').addEventListener('click', () => { const pages = Math.max(1, Math.ceil(filteredUsers().length / userPageSize)); if (userPage < pages) { userPage += 1; renderUsers(); } });
+    document.getElementById('user-last').addEventListener('click', () => { const pages = Math.max(1, Math.ceil(filteredUsers().length / userPageSize)); if (userPage < pages) { userPage = pages; renderUsers(); } });
     document.getElementById('user-export-button').addEventListener('click', exportUsers);
     document.addEventListener('click', () => { closeFilterPopover(); closeUserFilterPopover(); });
+    document.getElementById('ticket-first').addEventListener('click', () => { if (ticketPage > 1) { ticketPage = 1; loadDashboard(); } });
     document.getElementById('ticket-prev').addEventListener('click', () => { if (ticketPage > 1) { ticketPage -= 1; loadDashboard(); } });
     document.getElementById('ticket-next').addEventListener('click', () => { if (ticketPage < ticketTotalPages) { ticketPage += 1; loadDashboard(); } });
+    document.getElementById('ticket-last').addEventListener('click', () => { if (ticketPage < ticketTotalPages) { ticketPage = ticketTotalPages; loadDashboard(); } });
     document.getElementById('export-button').addEventListener('click', exportTickets);
     updateFilterIndicator();
     updateSortHeaders();
