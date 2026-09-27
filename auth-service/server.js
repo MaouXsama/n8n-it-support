@@ -86,6 +86,8 @@ function ticketOrder(mode) {
   if(mode==='priority-desc') return `${priority} DESC, due_at ASC NULLS LAST, created_at DESC`;
   if(mode==='status-asc') return `${status} ASC, created_at DESC`;
   if(mode==='status-desc') return `${status} DESC, created_at DESC`;
+  if(mode==='created-asc') return 'created_at ASC';
+  if(mode==='created-desc') return 'created_at DESC';
   if(mode==='timeline-asc') return `${timeline} ASC NULLS LAST, created_at DESC`;
   if(mode==='timeline-desc') return `${timeline} DESC NULLS LAST, created_at DESC`;
   if(mode==='newest') return 'created_at DESC';

@@ -123,9 +123,9 @@
     .filter-actions button { width:auto; margin:0; padding:9px 13px; }
     .filter-clear { background:#eef2f6!important; color:#475569!important; box-shadow:none!important; }
     .filter-apply { background:#2563eb!important; color:#fff!important; }
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { padding: 14px 10px; border-bottom: 1px solid #eaecf0; text-align: left; white-space: nowrap; }
+    .table-wrap { width:100%; overflow-x:hidden; }
+    table { width:100%; table-layout:fixed; border-collapse:collapse; margin-top:12px; }
+    th, td { min-width:0; padding:14px 9px; border-bottom:1px solid #eaecf0; overflow:hidden; text-align:left; vertical-align:middle!important; }
     th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; background: #f8fafc; }
     .sort-header { display:inline-flex; align-items:center; gap:5px; width:auto; min-width:0; margin:0; padding:0!important; border:0!important; border-radius:4px!important; background:transparent!important; color:inherit!important; box-shadow:none!important; font:inherit; text-transform:inherit; letter-spacing:inherit; }
     .sort-header:hover { background:transparent!important; color:#1d4ed8!important; box-shadow:none!important; transform:none; }
@@ -138,18 +138,20 @@
     .low { background: #ecfdf3; color: #027a48; }
     .overdue-row { background: #fff5f5; }
     .small-button { width: auto; margin: 0; padding: 7px 10px; }
-    .action-stack { display: flex; gap: 6px; align-items: center; }
-    .action-stack select { width: 125px; margin: 0; padding: 7px; font-size: 12px; }
-    .timeline { display: grid; gap: 7px; min-width: 190px; }
-    .timeline-row { display: flex; align-items: center; gap: 7px; }
-    .timeline-label { color: #667085; font-size: 12px; font-weight: 800; }
-    .timeline-value { font-size: 12px; font-weight: 700; }
-    .timeline-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 800; }
-    .timeline-created { background: #e8eef7; color: #334155; }
-    .timeline-due { background: #ffedd5; color: #c2410c; }
-    .timeline-completed { background: #dcfce7; color: #16723b; }
-    .timeline-late { background: #fee2e2; color: #991b1b; }
-    .timeline-cancelled { background: #eef2f6; color: #b42318; }
+    .action-stack { width:100%; display:flex; align-items:center; }
+    .action-stack select { width:100%; min-width:0; margin:0; padding:8px 9px; font-size:12px; text-overflow:ellipsis; }
+    .truncate-cell { display:block; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .title-cell { color:#172b4d; font-weight:800; }
+    .requester-cell { color:#334155; }
+    .date-cell { display:inline-grid; gap:2px; max-width:100%; padding:6px 8px; border-radius:9px; font-size:12px; font-weight:800; line-height:1.2; }
+    .date-cell .date-day,.date-cell .date-time { display:block; white-space:nowrap; }
+    .date-created { background:#e8eef7; color:#334155; }
+    .date-due { background:#ffedd5; color:#c2410c; }
+    .date-completed { background:#dcfce7; color:#16723b; }
+    .date-late { background:#fee2e2; color:#991b1b; }
+    .outcome-cell { display:grid; gap:5px; justify-items:start; }
+    .outcome-label { color:#64748b; font-size:10px; font-weight:900; letter-spacing:.03em; text-transform:uppercase; }
+    .outcome-cancelled { display:inline-block; padding:6px 8px; border-radius:9px; background:#eef2f6; color:#b42318; font-size:12px; font-weight:900; }
     .priority-critical-row td:first-child { border-left: 4px solid #dc2626; }
     .priority-high-row td:first-child { border-left: 4px solid #f97316; }
     .ticket-pagination { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding-top: 16px; }
@@ -158,6 +160,7 @@
     .pagination-controls button:disabled { cursor: not-allowed; opacity: .45; transform: none; }
     .pagination-summary, .pagination-page { color: #64748b; font-size: 13px; font-weight: 700; }
     .muted { color: #667085; }
+    @media (max-width: 1150px) { .table-wrap { overflow-x:auto; } table { min-width:1120px; } }
     @media (max-width: 900px) { .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); } .topbar { align-items: flex-start; flex-direction: column; } }
     @media (max-width: 560px) { .dashboard { grid-template-columns: 1fr; } main { padding-inline: 14px; } .panel { padding: 18px; } .ticket-queue-header { align-items:center; } .filter-grid { grid-template-columns:1fr; } .filter-field.full { grid-column:auto; } }
     .ticket-id-button { display:inline-flex; align-items:center; width:auto; min-width:0; margin:0; padding:4px 6px!important; border:0!important; border-radius:7px!important; background:transparent!important; color:#1d4ed8!important; box-shadow:none!important; font-weight:800; text-decoration:underline; text-decoration-color:#bfdbfe; text-underline-offset:3px; }
@@ -285,6 +288,7 @@
     </div>
     <div class="table-wrap">
       <table>
+        <colgroup><col style="width:8%"><col style="width:12%"><col style="width:14%"><col style="width:10%"><col style="width:7%"><col style="width:8%"><col style="width:10%"><col style="width:10%"><col style="width:11%"><col style="width:10%"></colgroup>
         <thead><tr>
           <th data-sort="ticket"><button class="sort-header" type="button" data-sort="ticket">Ticket <span class="sort-indicator"></span></button></th>
           <th data-sort="title"><button class="sort-header" type="button" data-sort="title">Title <span class="sort-indicator"></span></button></th>
@@ -292,10 +296,11 @@
           <th data-sort="department"><button class="sort-header" type="button" data-sort="department">Department <span class="sort-indicator"></span></button></th>
           <th data-sort="priority"><button class="sort-header" type="button" data-sort="priority">Priority <span class="sort-indicator"></span></button></th>
           <th data-sort="status"><button class="sort-header" type="button" data-sort="status">Status <span class="sort-indicator"></span></button></th>
-          <th data-sort="timeline"><button class="sort-header" type="button" data-sort="timeline">Timeline <span class="sort-indicator"></span></button></th>
+          <th data-sort="created"><button class="sort-header" type="button" data-sort="created">Created At <span class="sort-indicator"></span></button></th>
+          <th data-sort="timeline"><button class="sort-header" type="button" data-sort="timeline">Due / Outcome <span class="sort-indicator"></span></button></th>
           <th>Change Department</th><th>Update Status</th>
         </tr></thead>
-        <tbody id="ticket-rows"><tr><td colspan="9" class="muted">Loading tickets...</td></tr></tbody>
+        <tbody id="ticket-rows"><tr><td colspan="10" class="muted">Loading tickets...</td></tr></tbody>
       </table>
     </div>
     <div class="ticket-pagination">
@@ -506,7 +511,7 @@
         renderTickets();
       } catch (error) {
         if (requestId !== dashboardRequestId) return;
-        target.innerHTML = `<tr><td colspan="9" class="muted">${error.message}. Please refresh the page.</td></tr>`;
+        target.innerHTML = `<tr><td colspan="10" class="muted">${error.message}. Please refresh the page.</td></tr>`;
       }
     }
 
@@ -549,21 +554,28 @@
       return ['Open', 'In Progress'].includes(ticket.status) && ticket.due_at && new Date(ticket.due_at) <= new Date();
     }
 
-    function formatTimelineDate(value) {
-      return value ? new Date(value).toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }) : '—';
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
     }
 
-    function renderTimeline(ticket) {
-      const created = `<div class="timeline-row"><span class="timeline-label">Created:</span><span class="timeline-badge timeline-created">${formatTimelineDate(ticket.created_at)}</span></div>`;
+    function renderDate(value, className) {
+      if (!value) return '<span class="muted">—</span>';
+      const date = new Date(value);
+      const day = date.toLocaleDateString('en-US', { timeZone: 'Asia/Riyadh' });
+      const time = date.toLocaleTimeString('en-US', { timeZone: 'Asia/Riyadh', hour: 'numeric', minute: '2-digit', second: '2-digit' });
+      return `<span class="date-cell ${className}"><span class="date-day">${day}</span><span class="date-time">${time}</span></span>`;
+    }
+
+    function renderOutcome(ticket) {
       if (ticket.status === 'Completed') {
         const completedAfterSla = ticket.completed_at && ticket.due_at && new Date(ticket.completed_at) > new Date(ticket.due_at);
-        const completedClass = completedAfterSla ? 'timeline-late' : 'timeline-completed';
-        return `<div class="timeline">${created}<div class="timeline-row"><span class="timeline-label">Completed:</span><span class="timeline-badge ${completedClass}">${formatTimelineDate(ticket.completed_at)}</span></div></div>`;
+        const completedClass = completedAfterSla ? 'date-late' : 'date-completed';
+        return `<div class="outcome-cell"><span class="outcome-label">Completed</span>${renderDate(ticket.completed_at, completedClass)}</div>`;
       }
       if (ticket.status === 'Cancelled') {
-        return `<div class="timeline">${created}<div class="timeline-row"><span class="timeline-label">Status:</span><span class="timeline-badge timeline-cancelled">Cancelled</span></div></div>`;
+        return '<div class="outcome-cell"><span class="outcome-label">Status</span><span class="outcome-cancelled">Cancelled</span></div>';
       }
-      return `<div class="timeline">${created}<div class="timeline-row"><span class="timeline-label">Due:</span><span class="timeline-badge timeline-due">${formatTimelineDate(ticket.due_at)}</span></div></div>`;
+      return `<div class="outcome-cell"><span class="outcome-label">Due</span>${renderDate(ticket.due_at, 'date-due')}</div>`;
     }
 
     function renderTickets() {
@@ -574,19 +586,21 @@
       document.getElementById('ticket-prev').disabled = ticketPage <= 1;
       document.getElementById('ticket-next').disabled = ticketPage >= ticketTotalPages;
       const target = document.getElementById('ticket-rows');
-      if (!rows.length) { target.innerHTML = '<tr><td colspan="9" class="muted">No matching tickets</td></tr>'; return; }
+      if (!rows.length) { target.innerHTML = '<tr><td colspan="10" class="muted">No matching tickets</td></tr>'; return; }
       target.innerHTML = rows.map((ticket) => {
         const overdue = ticketIsOverdue(ticket);
         const badge = String(ticket.priority || 'Normal').toLowerCase();
         const departments = ['Networking','IT Helpdesk','Software'];
-        const move = currentUser && (currentUser.role === 'full_admin' || currentUser.role === 'department_admin') ? `<select id="dep-${ticket.ticket_id}">${departments.map(d => `<option ${d === ticket.department ? 'selected' : ''}>${d}</option>`).join('')}</select><button class="small-button" onclick="reassignTicket('${ticket.ticket_id}')">Move</button>` : '';
+        const move = currentUser && (currentUser.role === 'full_admin' || currentUser.role === 'department_admin') ? `<select id="dep-${ticket.ticket_id}" data-current="${ticket.department}" aria-label="Change department for ${ticket.ticket_id}" onchange="reassignTicket('${ticket.ticket_id}',this)">${departments.map(d => `<option ${d === ticket.department ? 'selected' : ''}>${d}</option>`).join('')}</select>` : '';
         const statuses = ['Open','In Progress','Completed','Cancelled'];
-        const statusControl = currentUser && (currentUser.role === 'full_admin' || currentUser.role === 'department_admin') ? `<select id="status-${ticket.ticket_id}">${statuses.map(s => `<option ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}</select><button class="small-button" onclick="updateTicketStatus('${ticket.ticket_id}')">Update</button>` : '';
+        const statusControl = currentUser && (currentUser.role === 'full_admin' || currentUser.role === 'department_admin') ? `<select id="status-${ticket.ticket_id}" data-current="${ticket.status}" aria-label="Update status for ${ticket.ticket_id}" onchange="updateTicketStatus('${ticket.ticket_id}',this)">${statuses.map(s => `<option ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}</select>` : '';
         const moveControl = `<div class="action-stack">${move}</div>`;
         const updateControl = `<div class="action-stack">${statusControl}</div>`;
         const statusBadge = String(ticket.status || 'Open').toLowerCase().replace(/\s+/g, '-');
         const activePriorityClass = ['Open', 'In Progress'].includes(ticket.status) && ticket.priority === 'Critical' ? 'priority-critical-row' : ['Open', 'In Progress'].includes(ticket.status) && ticket.priority === 'High' ? 'priority-high-row' : '';
-        return `<tr class="${overdue ? 'overdue-row' : ''} ${activePriorityClass}"><td><button class="ticket-id-button" onclick="openTicketDetails('${ticket.ticket_id}')" aria-label="View details for ticket ${ticket.ticket_id}">${ticket.ticket_id}</button></td><td><strong>${ticket.title}</strong></td><td>${ticket.requester || 'Not provided'}</td><td>${ticket.department}</td><td><span class="badge ${badge}">${ticket.priority || 'Normal'}</span></td><td><span class="badge ${statusBadge}">${ticket.status}</span></td><td>${renderTimeline(ticket)}</td><td>${moveControl}</td><td>${updateControl}</td></tr>`;
+        const safeTitle = escapeHtml(ticket.title || 'Untitled ticket');
+        const safeRequester = escapeHtml(ticket.requester || 'Not provided');
+        return `<tr class="${overdue ? 'overdue-row' : ''} ${activePriorityClass}"><td><button class="ticket-id-button" onclick="openTicketDetails('${ticket.ticket_id}')" aria-label="View details for ticket ${ticket.ticket_id}">${ticket.ticket_id}</button></td><td><span class="truncate-cell title-cell" title="${safeTitle}">${safeTitle}</span></td><td><span class="truncate-cell requester-cell" title="${safeRequester}">${safeRequester}</span></td><td>${ticket.department}</td><td><span class="badge ${badge}">${ticket.priority || 'Normal'}</span></td><td><span class="badge ${statusBadge}">${ticket.status}</span></td><td>${renderDate(ticket.created_at, 'date-created')}</td><td>${renderOutcome(ticket)}</td><td>${moveControl}</td><td>${updateControl}</td></tr>`;
       }).join('');
     }
 
@@ -596,24 +610,40 @@
       await loadDashboard();
     }
 
-    async function reassignTicket(ticketId) {
-      const department = document.getElementById(`dep-${ticketId}`).value;
-      if (!confirm(`Move ${ticketId} to ${department}?`)) return;
-      const response = await fetch('/api/tickets/reassign', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` }, body: JSON.stringify({ ticket_id: ticketId, department, reason: '' }) });
-      const data = await response.json();
-      if (!response.ok) { alert(data.message || 'Reassignment failed'); return; }
-      alert(`Ticket ${ticketId} moved to ${department}`);
-      await loadDashboard();
+    async function reassignTicket(ticketId, select) {
+      const previous = select.dataset.current;
+      const department = select.value;
+      if (department === previous) return;
+      if (!confirm(`Move ${ticketId} to ${department}?`)) { select.value = previous; return; }
+      select.disabled = true;
+      try {
+        const response = await fetch('/api/tickets/reassign', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` }, body: JSON.stringify({ ticket_id: ticketId, department, reason: '' }) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Reassignment failed');
+        select.dataset.current = department;
+        await loadDashboard();
+      } catch (error) {
+        select.value = previous;
+        alert(error.message);
+      } finally { select.disabled = false; }
     }
 
-    async function updateTicketStatus(ticketId) {
-      const status = document.getElementById(`status-${ticketId}`).value;
-      if (!confirm(`Change ${ticketId} to ${status}?`)) return;
-      const response = await fetch('/api/tickets/status', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` }, body: JSON.stringify({ ticket_id: ticketId, status, resolution: '' }) });
-      const data = await response.json();
-      if (!response.ok) { alert(data.message || 'Status update failed'); return; }
-      alert(`Ticket ${ticketId} updated to ${status}.`);
-      await loadDashboard();
+    async function updateTicketStatus(ticketId, select) {
+      const previous = select.dataset.current;
+      const status = select.value;
+      if (status === previous) return;
+      if (!confirm(`Change ${ticketId} to ${status}?`)) { select.value = previous; return; }
+      select.disabled = true;
+      try {
+        const response = await fetch('/api/tickets/status', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` }, body: JSON.stringify({ ticket_id: ticketId, status, resolution: '' }) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Status update failed');
+        select.dataset.current = status;
+        await loadDashboard();
+      } catch (error) {
+        select.value = previous;
+        alert(error.message);
+      } finally { select.disabled = false; }
     }
 
     document.getElementById('filter-button').addEventListener('click', event => { event.stopPropagation(); toggleFilterPopover(); });
