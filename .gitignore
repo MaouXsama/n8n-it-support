@@ -1,0 +1,9 @@
+.env
+*.tfstate
+*.tfstate.*
+.terraform/
+node_modules/
+tmp/
+terraform.tfvars
+*.tfplan
+auth-service/node_modules/

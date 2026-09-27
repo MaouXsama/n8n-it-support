@@ -1,0 +1,67 @@
+{$TEMPORARY_HOSTNAME} {
+    encode gzip
+
+    handle / {
+        rewrite * /login.html
+        reverse_proxy 127.0.0.1:8080
+    }
+
+    handle /create-ticket* {
+        rewrite * /create-ticket.html
+        reverse_proxy 127.0.0.1:8080
+    }
+
+    handle /login* {
+        rewrite * /login.html
+        reverse_proxy 127.0.0.1:8080
+    }
+
+    handle /signup* {
+        rewrite * /signup.html
+        reverse_proxy 127.0.0.1:8080
+    }
+
+    handle /user* {
+        rewrite * /user.html
+        reverse_proxy 127.0.0.1:8080
+    }
+
+    handle /api/auth/* {
+        uri strip_prefix /api
+        reverse_proxy 127.0.0.1:3000
+    }
+
+    handle /api/tickets* {
+        uri strip_prefix /api
+        reverse_proxy 127.0.0.1:3000
+    }
+
+    handle /api/audit* {
+        uri strip_prefix /api
+        reverse_proxy 127.0.0.1:3000
+    }
+
+    handle /api/health {
+        uri strip_prefix /api
+        reverse_proxy 127.0.0.1:3000
+    }
+
+    handle /api/admin/* {
+        uri strip_prefix /api
+        reverse_proxy 127.0.0.1:3000
+    }
+
+    handle /assets/* {
+        reverse_proxy 127.0.0.1:8080
+    }
+
+    redir /dashboard /dashboard/ 308
+
+    handle_path /dashboard/* {
+        reverse_proxy 127.0.0.1:8080
+    }
+
+    handle {
+        reverse_proxy 127.0.0.1:5678
+    }
+}

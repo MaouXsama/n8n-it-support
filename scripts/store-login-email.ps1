@@ -1,0 +1,1 @@
+$p='dashboard/login.html';$s=Get-Content $p -Raw;$s=$s.Replace("sessionStorage.setItem('token',j.token);", "sessionStorage.setItem('token',j.token);sessionStorage.setItem('userEmail',j.user.email);");Set-Content $p $s -NoNewline

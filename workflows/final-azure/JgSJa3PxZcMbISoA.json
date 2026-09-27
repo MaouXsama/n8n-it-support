@@ -1,0 +1,127 @@
+{
+  "updatedAt": "2026-09-26T04:02:35.096Z",
+  "createdAt": "2026-09-24T23:01:51.802Z",
+  "id": "JgSJa3PxZcMbISoA",
+  "name": "04 - Ticket Dashboard API",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "dashboard-metrics",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b8b1ba3d-6064-4cf5-ac31-90b0cb1bc564",
+      "name": "Webhook",
+      "webhookId": "80d2d880-66e9-4772-bc79-8d61afe938d0"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT json_build_object(\n  'metrics', json_build_object(\n    'total_open', COUNT(*) FILTER (WHERE status = 'Open'),\n    'networking_open', COUNT(*) FILTER (WHERE status = 'Open' AND department = 'Networking'),\n    'helpdesk_open', COUNT(*) FILTER (WHERE status = 'Open' AND department = 'IT Helpdesk'),\n    'software_open', COUNT(*) FILTER (WHERE status = 'Open' AND department = 'Software'),\n    'networking_total', COUNT(*) FILTER (WHERE department = 'Networking'),\n    'helpdesk_total', COUNT(*) FILTER (WHERE department = 'IT Helpdesk'),\n    'software_total', COUNT(*) FILTER (WHERE department = 'Software'),\n    'completed_today', COUNT(*) FILTER (WHERE status = 'Completed' AND completed_at >= CURRENT_DATE),\n    'completed_last_7_days', COUNT(*) FILTER (WHERE status = 'Completed' AND completed_at >= CURRENT_DATE - INTERVAL '7 days'),\n    'overdue_open', COUNT(*) FILTER (WHERE status = 'Open' AND due_at <= NOW()),\n    'created_today', COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE),\n    'completed_within_sla', COUNT(*) FILTER (WHERE status = 'Completed' AND completed_at IS NOT NULL AND completed_at <= due_at),\n    'completed_after_sla', COUNT(*) FILTER (WHERE status = 'Completed' AND completed_at IS NOT NULL AND completed_at > due_at),\n    'sla_compliance_percentage', COALESCE(ROUND(100.0 * COUNT(*) FILTER (WHERE status = 'Completed' AND completed_at <= due_at) / NULLIF(COUNT(*) FILTER (WHERE status = 'Completed'), 0), 1), 0),\n    'refreshed_at', NOW()\n  ),\n  'tickets', COALESCE((\n    SELECT json_agg(row_to_json(ticket_rows) ORDER BY ticket_rows.created_at DESC)\n    FROM (\n      SELECT ticket_id, title, description, requester, department, priority,\n             sla_hours, status, classification_status, created_at, due_at, completed_at\n      FROM public.tickets\n      ORDER BY created_at DESC\n      LIMIT 100\n    ) ticket_rows\n  ), '[]'::json)\n) AS dashboard\nFROM public.tickets;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "ef32c9b6-c265-43e2-b419-7a50f3160ecf",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "WUUeEoip7NlKgCwJ",
+          "name": "Azure PostgreSQL n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.dashboard }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "1f0e7ba3-8b2f-40e8-b36f-ac1090cc2867",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "8ef05fe4-6334-4ce8-aeb6-727686545d61",
+  "activeVersionId": "8ef05fe4-6334-4ce8-aeb6-727686545d61",
+  "versionCounter": 12,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-09-25T00:59:20.206Z",
+      "createdAt": "2026-09-25T00:59:20.206Z",
+      "role": "workflow:owner",
+      "workflowId": "JgSJa3PxZcMbISoA",
+      "projectId": "Wn68snPPgZiLQTJo",
+      "project": {
+        "updatedAt": "2026-09-25T00:55:57.084Z",
+        "createdAt": "2026-09-25T00:52:53.630Z",
+        "id": "Wn68snPPgZiLQTJo",
+        "name": "Yazeed Komosany <yazeed.mk0@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "42c84660-5a7e-473a-ba67-3bebf9b3acab"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version b80001d8",
+    "description": ""
+  }
+}

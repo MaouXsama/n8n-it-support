@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+cd "$PROJECT_DIR"
+
+docker compose \
+  --env-file .env \
+  -f docker/docker-compose.yml \
+  ps

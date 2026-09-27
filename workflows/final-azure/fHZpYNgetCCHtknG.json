@@ -1,0 +1,128 @@
+{
+  "updatedAt": "2026-09-26T06:23:58.327Z",
+  "createdAt": "2026-09-24T19:07:57.175Z",
+  "id": "fHZpYNgetCCHtknG",
+  "name": "00 - Database Setup",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8833c19b-fb59-4587-bf09-a0df502b3df2",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM app_users WHERE role = 'user'; SELECT COUNT(*) AS remaining_non_admin_users FROM app_users WHERE role = 'user';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "cb030293-a225-4567-8b0a-0ce09ad3b42d",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "WUUeEoip7NlKgCwJ",
+          "name": "Azure PostgreSQL n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS notifications (\n    id SERIAL PRIMARY KEY,\n    ticket_id VARCHAR(50) NOT NULL,\n    department VARCHAR(50) NOT NULL,\n    recipient_group VARCHAR(100) NOT NULL,\n    message TEXT NOT NULL,\n    channel VARCHAR(30) NOT NULL DEFAULT 'mock',\n    status VARCHAR(30) NOT NULL DEFAULT 'sent',\n    sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        448,
+        0
+      ],
+      "id": "9f7ffddb-2aa5-43ed-8520-d5db4fcc75d7",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "WUUeEoip7NlKgCwJ",
+          "name": "Azure PostgreSQL n8n"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "b972ab5a-52c9-4a8b-8e35-e52e20b9535d",
+  "activeVersionId": null,
+  "versionCounter": 11,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-09-25T00:59:20.206Z",
+      "createdAt": "2026-09-25T00:59:20.206Z",
+      "role": "workflow:owner",
+      "workflowId": "fHZpYNgetCCHtknG",
+      "projectId": "Wn68snPPgZiLQTJo",
+      "project": {
+        "updatedAt": "2026-09-25T00:55:57.084Z",
+        "createdAt": "2026-09-25T00:52:53.630Z",
+        "id": "Wn68snPPgZiLQTJo",
+        "name": "Yazeed Komosany <yazeed.mk0@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "42c84660-5a7e-473a-ba67-3bebf9b3acab"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

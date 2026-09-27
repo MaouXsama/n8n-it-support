@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IT Ticket Dashboard</title>
+  <style>
+    :root { --navy: #172b4d; --blue: #2563eb; --muted: #667085; --line: #e4e7ec; --surface: #ffffff; --bg: #f5f7fb; }
+    * { box-sizing: border-box; }
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--navy); }
+    .topbar { background: linear-gradient(135deg, #102a56, #1d4ed8); color: white; padding: 28px clamp(20px, 5vw, 64px); display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+    .topbar h1 { margin: 0; font-size: clamp(25px, 3vw, 38px); letter-spacing: -0.03em; }
+    .topbar p { margin: 8px 0 0; color: #dbeafe; }
+    .topbar .status { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); padding: 9px 13px; border-radius: 999px; font-size: 13px; white-space: nowrap; }
+    main { max-width: 1500px; margin: 0 auto; padding: 28px clamp(20px, 5vw, 64px) 56px; }
+    h2 { margin: 0 0 6px; font-size: 20px; letter-spacing: -0.02em; }
+    .section-subtitle { color: var(--muted); margin: 0 0 18px; font-size: 14px; }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 5px 18px rgba(16, 24, 40, 0.06);
+      background: var(--surface);
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .value {
+      font-size: 34px;
+      font-weight: bold;
+      margin-top: 10px;
+      letter-spacing: -0.04em;
+    }
+
+    .overdue {
+      color: #d92d20;
+    }
+
+    .panel {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 24px 0;
+      border: 1px solid var(--line);
+      box-shadow: 0 5px 18px rgba(16, 24, 40, 0.06);
+    }
+
+    label {
+      display: block;
+      margin-top: 16px;
+      font-weight: 600;
+      color: var(--navy);
+    }
+
+    input, textarea, button {
+      box-sizing: border-box;
+      width: 100%;
+      margin-top: 6px;
+      padding: 11px;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      font: inherit;
+      background: #fff;
+      color: var(--navy);
+    }
+
+    input:focus, textarea:focus, select:focus { outline: 3px solid #dbeafe; border-color: var(--blue); }
+
+    textarea { min-height: 110px; resize: vertical; }
+
+    button {
+      margin-top: 18px;
+      background: var(--blue);
+      color: white;
+      border: 0;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform .15s ease, background .15s ease;
+    }
+    button:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+    #ticket-result { margin-top: 14px; white-space: pre-wrap; }
+
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+    .toolbar input, .toolbar select { flex: 1; min-width: 180px; margin-top: 0; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { padding: 14px 10px; border-bottom: 1px solid #eaecf0; text-align: left; white-space: nowrap; }
+    th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; background: #f8fafc; }
+    tr:hover td { background: #f8fbff; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .critical { background: #fee4e2; color: #b42318; }
+    .high { background: #fef0c7; color: #b54708; }
+    .normal { background: #eef4ff; color: #175cd3; }
+    .low { background: #ecfdf3; color: #027a48; }
+    .overdue-row { background: #fff5f5; }
+    .small-button { width: auto; margin: 0; padding: 7px 10px; }
+    .action-stack { display: flex; gap: 6px; align-items: center; }
+    .action-stack select { width: 125px; margin: 0; padding: 7px; font-size: 12px; }
+    .muted { color: #667085; }
+    @media (max-width: 900px) { .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); } .topbar { align-items: flex-start; flex-direction: column; } }
+    @media (max-width: 560px) { .dashboard { grid-template-columns: 1fr; } main { padding-inline: 14px; } .panel { padding: 18px; } }
+    .details-button { background:#eef4ff; color:#175cd3; border:1px solid #cfe0ff; padding:6px 10px; border-radius:8px; font-weight:800; cursor:pointer; }
+    .details-button:hover { background:#dbeafe; }
+    .ticket-modal { position:fixed; inset:0; z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(15,23,42,.55); }
+    .ticket-modal.open { display:flex; }
+    .ticket-modal-card { width:min(560px,100%); max-height:90vh; overflow:auto; background:#fff; border-radius:18px; padding:26px; box-shadow:0 24px 70px rgba(15,23,42,.3); }
+    .ticket-modal-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+    .ticket-modal-close { background:#eef2f6!important; color:#334155!important; padding:7px 11px!important; box-shadow:none!important; }
+    .ticket-modal-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:20px; }
+    .ticket-modal-item { padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; }
+    .ticket-modal-item small { display:block; color:#64748b; font-weight:700; margin-bottom:3px; }
+    .ticket-modal-description { margin-top:14px; padding:14px; background:#f8fafc; border-radius:10px; white-space:pre-wrap; }
+    @media(max-width:600px){.ticket-modal-grid{grid-template-columns:1fr}}
+  </style>
+<link rel="stylesheet" href="/assets/app.css"></head>
+<body>
+  <header class="topbar">
+    <div class="masar-brand"><img class="masar-logo" src="/assets/masar-logo.png" alt="Masar logo"><div class="masar-brand-copy"><h1 id="page-title">IT Ticket Dashboard</h1><p id="page-subtitle">Centralized ticket intake, SLA monitoring, and team operations</p></div></div>
+    <div><div class="status">● System operational</div><button onclick="sessionStorage.removeItem('token');location.href='/login'" style="width:auto;margin-top:10px;padding:8px 12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3)">Sign out</button></div>
+  </header>
+  <main>
+
+  <section class="panel" style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+    <div><h2>Ticket operations</h2><p class="section-subtitle">Review queues, monitor SLAs, and complete tickets from this staff console.</p></div>
+  </section>
+
+  <div class="dashboard">
+    <div class="card">
+      <div class="label">Open Tickets</div>
+      <div class="value" id="total_open">-</div>
+    </div>
+
+    <div class="card department-card" data-department="Networking">
+      <div class="label">Networking</div>
+      <div class="value" id="networking_open">-</div>
+    </div>
+
+    <div class="card department-card" data-department="IT Helpdesk">
+      <div class="label">IT Helpdesk</div>
+      <div class="value" id="helpdesk_open">-</div>
+    </div>
+
+    <div class="card department-card" data-department="Software">
+      <div class="label">Software</div>
+      <div class="value" id="software_open">-</div>
+    </div>
+
+    <div class="card">
+      <div class="label">In Progress Tickets</div>
+      <div class="value" id="total_in_progress">-</div>
+    </div>
+
+    <div class="card department-card" data-department="Networking">
+      <div class="label">Networking In Progress</div>
+      <div class="value" id="networking_in_progress">-</div>
+    </div>
+
+    <div class="card department-card" data-department="IT Helpdesk">
+      <div class="label">IT Helpdesk In Progress</div>
+      <div class="value" id="helpdesk_in_progress">-</div>
+    </div>
+
+    <div class="card department-card" data-department="Software">
+      <div class="label">Software In Progress</div>
+      <div class="value" id="software_in_progress">-</div>
+    </div>
+
+    <div class="card"><div class="label">SLA Compliance</div><div class="value" id="sla_compliance_percentage">-</div></div>
+    <div class="card"><div class="label">Completed Within SLA</div><div class="value" id="completed_within_sla">-</div></div>
+    <div class="card"><div class="label">Completed After SLA</div><div class="value" id="completed_after_sla">-</div></div>
+
+    <div class="card">
+      <div class="label">Completed Today</div>
+      <div class="value" id="completed_today">-</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Completed Last 7 Days</div>
+      <div class="value" id="completed_last_7_days">-</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Overdue Open Tickets</div>
+      <div class="value overdue" id="overdue_open">-</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Created Today</div>
+      <div class="value" id="created_today">-</div>
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>Ticket Queue</h2>
+    <div class="toolbar">
+      <input id="ticket-search" placeholder="Search ticket, title, or requester">
+      <select id="department-filter">
+        <option value="">All departments</option>
+        <option>Networking</option>
+        <option>IT Helpdesk</option>
+        <option>Software</option>
+      </select>
+      <select id="status-filter">
+        <option value="">All statuses</option>
+        <option>Open</option>
+        <option>In Progress</option>
+        <option>Completed</option>
+      </select>
+      <select id="priority-filter">
+        <option value="">All priorities</option>
+        <option>Critical</option>
+        <option>High</option>
+        <option>Normal</option>
+        <option>Low</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Ticket</th><th>Title</th><th>Requester</th><th>Department</th><th>Priority</th><th>Status</th><th>SLA</th><th>Action</th></tr></thead>
+        <tbody id="ticket-rows"><tr><td colspan="8" class="muted">Loading tickets...</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" id="users-panel" style="display:none">
+    <h2>Registered Users</h2>
+    <div class="toolbar"><input id="user-search" placeholder="Search name, username, or email"></div>
+    <div class="table-wrap"><table><thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Department</th><th>Status</th><th>Registered</th></tr></thead><tbody id="user-rows"></tbody></table></div>
+  </section>
+  </main>
+  <div id="ticket-modal" class="ticket-modal" role="dialog" aria-modal="true" aria-labelledby="ticket-modal-title">
+    <div class="ticket-modal-card">
+      <div class="ticket-modal-header"><div><h2 id="ticket-modal-title">Ticket details</h2><p id="ticket-modal-subtitle" class="muted"></p></div><button class="ticket-modal-close" onclick="closeTicketDetails()" aria-label="Close">Close</button></div>
+      <div id="ticket-modal-grid" class="ticket-modal-grid"></div>
+      <div class="ticket-modal-description"><b>Description</b><div id="ticket-modal-description"></div></div>
+    </div>
+  </div>
+
+  <script>
+    if (!sessionStorage.getItem('token')) location.href = '/login';
+    const apiBase = window.location.pathname.startsWith('/dashboard') ? '' : '';
+
+    let dashboardData = { metrics: {}, tickets: [] };
+    let currentUser = null;
+
+    function openTicketDetails(ticketId) {
+      const ticket = dashboardData.tickets.find(t => t.ticket_id === ticketId);
+      if (!ticket) return;
+      document.getElementById('ticket-modal-title').textContent = ticket.title || 'Ticket details';
+      document.getElementById('ticket-modal-subtitle').textContent = ticket.ticket_id;
+      const formatDate = value => value ? new Date(value).toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }) : '—';
+      document.getElementById('ticket-modal-grid').innerHTML = [
+        ['Requester', ticket.requester || 'Not provided'], ['Department', ticket.department || '—'],
+        ['Priority', ticket.priority || 'Normal'], ['Status', ticket.status || '—'],
+        ['Created', formatDate(ticket.created_at)], ['Due', formatDate(ticket.due_at)],
+        ['Completed', formatDate(ticket.completed_at)]
+      ].map(([label, value]) => {
+        const normalized = String(value).toLowerCase().replace(/\s+/g, '-');
+        const isPriority = label === 'Priority';
+        const isStatus = label === 'Status';
+        const badgeClass = isPriority ? normalized : isStatus ? normalized : '';
+        const displayValue = badgeClass ? '<span class="badge ' + badgeClass + '">' + value + '</span>' : value;
+        return '<div class="ticket-modal-item"><small>' + label + '</small>' + displayValue + '</div>';
+      }).join('');
+      document.getElementById('ticket-modal-description').textContent = ticket.description || 'No description provided.';
+      document.getElementById('ticket-modal').classList.add('open');
+    }
+
+    function closeTicketDetails() { document.getElementById('ticket-modal').classList.remove('open'); }
+    document.getElementById('ticket-modal').addEventListener('click', event => { if (event.target.id === 'ticket-modal') closeTicketDetails(); });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') closeTicketDetails(); });
+
+    async function loadCurrentUser() {
+      const response = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
+      if (!response.ok) { sessionStorage.removeItem('token'); location.href = '/login'; return false; }
+      currentUser = (await response.json()).user;
+      const title = currentUser.role === 'full_admin' ? 'Full Admin Dashboard' : `${currentUser.department} Dashboard`;
+      document.getElementById('page-title').textContent = title;
+      document.getElementById('page-subtitle').textContent = `Welcome, ${currentUser.full_name} · ${currentUser.role === 'full_admin' ? 'All departments' : currentUser.department + ' tickets only'}`;
+      if (currentUser.role === 'department_admin') document.querySelectorAll('.department-card').forEach(card => { if (card.dataset.department !== currentUser.department) card.style.display = 'none'; });
+      if (currentUser.role === 'full_admin') loadUsers();
+      return true;
+    }
+
+    async function loadUsers() {
+      const response = await fetch('/api/admin/users', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
+      if (!response.ok) return;
+      const data = await response.json();
+      document.getElementById('users-panel').style.display = 'block';
+      window.registeredUsers = data.users;
+      renderUsers();
+    }
+
+    function renderUsers() {
+      const query = (document.getElementById('user-search').value || '').toLowerCase();
+      const users = (window.registeredUsers || []).filter(user => `${user.full_name} ${user.username} ${user.email}`.toLowerCase().includes(query));
+      document.getElementById('user-rows').innerHTML = users.map(user => `<tr><td>${user.full_name}</td><td>${user.username}</td><td>${user.email}</td><td>${user.role}</td><td>${user.department || '—'}</td><td>${user.active ? 'Active' : 'Inactive'}</td><td>${new Date(user.created_at).toLocaleDateString()}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No matching users</td></tr>';
+    }
+
+    async function loadDashboard() {
+      const response = await fetch('/api/tickets', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
+
+      const data = await response.json();
+      dashboardData.tickets = data.tickets || [];
+      dashboardData.metrics = {
+        total_open: dashboardData.tickets.filter(t => t.status === 'Open').length,
+        networking_open: dashboardData.tickets.filter(t => t.status === 'Open' && t.department === 'Networking').length,
+        helpdesk_open: dashboardData.tickets.filter(t => t.status === 'Open' && t.department === 'IT Helpdesk').length,
+        software_open: dashboardData.tickets.filter(t => t.status === 'Open' && t.department === 'Software').length,
+        total_in_progress: dashboardData.tickets.filter(t => t.status === 'In Progress').length,
+        networking_in_progress: dashboardData.tickets.filter(t => t.status === 'In Progress' && t.department === 'Networking').length,
+        helpdesk_in_progress: dashboardData.tickets.filter(t => t.status === 'In Progress' && t.department === 'IT Helpdesk').length,
+        software_in_progress: dashboardData.tickets.filter(t => t.status === 'In Progress' && t.department === 'Software').length,
+        networking_total: dashboardData.tickets.filter(t => t.department === 'Networking').length,
+        helpdesk_total: dashboardData.tickets.filter(t => t.department === 'IT Helpdesk').length,
+        software_total: dashboardData.tickets.filter(t => t.department === 'Software').length,
+        completed_today: dashboardData.tickets.filter(t => t.status === 'Completed' && new Date(t.completed_at) >= new Date(new Date().setHours(0,0,0,0))).length,
+        completed_last_7_days: dashboardData.tickets.filter(t => t.status === 'Completed' && new Date(t.completed_at) >= new Date(Date.now() - 7 * 86400000)).length,
+        overdue_open: dashboardData.tickets.filter(ticketIsOverdue).length,
+        created_today: dashboardData.tickets.filter(t => new Date(t.created_at) >= new Date(new Date().setHours(0,0,0,0))).length,
+        completed_within_sla: dashboardData.tickets.filter(t => t.status === 'Completed' && new Date(t.completed_at) <= new Date(t.due_at)).length,
+        completed_after_sla: dashboardData.tickets.filter(t => t.status === 'Completed' && new Date(t.completed_at) > new Date(t.due_at)).length,
+        sla_compliance_percentage: (() => { const completed = dashboardData.tickets.filter(t => t.status === 'Completed'); return completed.length ? Math.round(1000 * completed.filter(t => new Date(t.completed_at) <= new Date(t.due_at)).length / completed.length) / 10 : 0; })()
+      };
+      for (const key of Object.keys(dashboardData.metrics)) {
+        const element = document.getElementById(key);
+
+        if (element) {
+          element.textContent = key === 'sla_compliance_percentage' ? `${dashboardData.metrics[key]}%` : dashboardData.metrics[key];
+        }
+      }
+      renderTickets();
+    }
+
+    function ticketIsOverdue(ticket) {
+      return ticket.status !== 'Completed' && ticket.due_at && new Date(ticket.due_at) <= new Date();
+    }
+
+    function renderTickets() {
+      const query = document.getElementById('ticket-search').value.toLowerCase();
+      const department = document.getElementById('department-filter').value;
+      const status = document.getElementById('status-filter').value;
+      const priority = document.getElementById('priority-filter').value;
+      const rows = dashboardData.tickets.filter((ticket) => {
+        const text = `${ticket.ticket_id} ${ticket.title} ${ticket.requester}`.toLowerCase();
+        return (!query || text.includes(query)) && (!department || ticket.department === department) && (!status || ticket.status === status) && (!priority || ticket.priority === priority);
+      });
+      const target = document.getElementById('ticket-rows');
+      if (!rows.length) { target.innerHTML = '<tr><td colspan="8" class="muted">No matching tickets</td></tr>'; return; }
+      target.innerHTML = rows.map((ticket) => {
+        const overdue = ticketIsOverdue(ticket);
+        const due = ticket.due_at ? new Date(ticket.due_at).toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }) : '-';
+        const badge = String(ticket.priority || 'Normal').toLowerCase();
+        const departments = ['Networking','IT Helpdesk','Software'];
+        const move = currentUser && (currentUser.role === 'full_admin' || currentUser.role === 'department_admin') ? `<select id="dep-${ticket.ticket_id}">${departments.map(d => `<option ${d === ticket.department ? 'selected' : ''}>${d}</option>`).join('')}</select><button class="small-button" onclick="reassignTicket('${ticket.ticket_id}')">Move</button>` : '';
+        const statuses = ['Open','In Progress','Completed','Cancelled'];
+        const statusControl = currentUser && (currentUser.role === 'full_admin' || currentUser.role === 'department_admin') ? `<select id="status-${ticket.ticket_id}">${statuses.map(s => `<option ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}</select><button class="small-button" onclick="updateTicketStatus('${ticket.ticket_id}')">Update</button>` : '';
+        const action = `<div class="action-stack">${move}${statusControl}</div>`;
+        const statusBadge = String(ticket.status || 'Open').toLowerCase().replace(/\s+/g, '-');
+        return `<tr class="${overdue ? 'overdue-row' : ''}"><td>${ticket.ticket_id}</td><td><strong>${ticket.title}</strong><br><button class="details-button" onclick="openTicketDetails('${ticket.ticket_id}')">View details</button></td><td>${ticket.requester || 'Not provided'}</td><td>${ticket.department}</td><td><span class="badge ${badge}">${ticket.priority || 'Normal'}</span></td><td><span class="badge ${statusBadge}">${ticket.status}</span></td><td>${overdue ? 'OVERDUE' : due}</td><td>${action}</td></tr>`;
+      }).join('');
+    }
+
+    async function completeTicket(ticketId) {
+      if (!confirm(`Mark ${ticketId} as completed?`)) return;
+      await fetch('/webhook/ticket-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticket_id: ticketId, status: 'Completed' }) });
+      await loadDashboard();
+    }
+
+    async function reassignTicket(ticketId) {
+      const department = document.getElementById(`dep-${ticketId}`).value;
+      const reason = prompt('Reason for reassignment (optional):') || '';
+      if (!confirm(`Move ${ticketId} to ${department}?`)) return;
+      const response = await fetch('/api/tickets/reassign', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` }, body: JSON.stringify({ ticket_id: ticketId, department, reason }) });
+      const data = await response.json();
+      if (!response.ok) { alert(data.message || 'Reassignment failed'); return; }
+      alert(`Ticket ${ticketId} moved to ${department}`);
+      await loadDashboard();
+    }
+
+    async function updateTicketStatus(ticketId) {
+      const status = document.getElementById(`status-${ticketId}`).value;
+      const resolution = status === 'Completed' ? (prompt('Resolution comment (optional):') || '') : '';
+      if (!confirm(`Change ${ticketId} to ${status}?`)) return;
+      const response = await fetch('/api/tickets/status', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` }, body: JSON.stringify({ ticket_id: ticketId, status, resolution }) });
+      const data = await response.json();
+      if (!response.ok) { alert(data.message || 'Status update failed'); return; }
+      alert(`Ticket ${ticketId} updated to ${status}.`);
+      await loadDashboard();
+    }
+
+    ['ticket-search', 'department-filter', 'status-filter', 'priority-filter'].forEach((id) => document.getElementById(id).addEventListener('input', renderTickets));
+    document.getElementById('user-search').addEventListener('input', renderUsers);
+
+    loadCurrentUser().then(ok => ok && loadDashboard());
+    setInterval(loadDashboard, 60000);
+  </script>
+</body>
+</html>

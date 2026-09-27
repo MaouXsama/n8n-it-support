@@ -1,0 +1,98 @@
+{
+  "updatedAt": "2026-09-26T04:48:20.196Z",
+  "createdAt": "2026-09-26T04:47:41.822Z",
+  "id": "kxHV9YI0IfFPqEPH",
+  "name": "My workflow",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "dcdc4549-0dd5-430f-9d08-0ae85aacbcb4",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "sendTo": "sda.n8n.project@gmail.com",
+        "subject": "n8n Gmail connection test",
+        "message": "This is a test email from the n8n IT Support project.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "2f42db65-4ec0-472d-bef6-39abe76ae5e5",
+      "name": "Send a message",
+      "webhookId": "4d880814-1399-4f29-9211-ca967735b0e6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "r0i7DQEx6fbebKDM",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "124b9249-5030-4322-88f8-adb6c5cfb553",
+  "activeVersionId": null,
+  "versionCounter": 3,
+  "triggerCount": 0,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-09-26T04:47:41.822Z",
+      "createdAt": "2026-09-26T04:47:41.822Z",
+      "role": "workflow:owner",
+      "workflowId": "kxHV9YI0IfFPqEPH",
+      "projectId": "Wn68snPPgZiLQTJo",
+      "project": {
+        "updatedAt": "2026-09-25T00:55:57.084Z",
+        "createdAt": "2026-09-25T00:52:53.630Z",
+        "id": "Wn68snPPgZiLQTJo",
+        "name": "Yazeed Komosany <yazeed.mk0@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "42c84660-5a7e-473a-ba67-3bebf9b3acab"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

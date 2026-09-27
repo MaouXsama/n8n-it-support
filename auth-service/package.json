@@ -1,0 +1,7 @@
+{
+  "name": "n8n-ticket-auth-service",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "bcryptjs": "^2.4.3", "jsonwebtoken": "^9.0.2", "pg": "^8.13.1" }
+}

@@ -1,0 +1,6 @@
+$p='dashboard/user.html';$s=Get-Content $p -Raw
+$s=$s.Replace('.top{background:linear-gradient(135deg,#102a56,#2563eb);color:#fff;padding:28px 6%}', '.top{background:linear-gradient(135deg,#102a56,#2563eb);color:#fff;padding:28px clamp(20px,6%,80px);display:flex;align-items:center;justify-content:space-between;gap:20px}.top button{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);color:#fff;margin:0}')
+$s=$s.Replace('.wrap{max-width:1100px;margin:auto;padding:28px 6%}', '.wrap{max-width:1200px;margin:auto;padding:32px clamp(20px,6%,80px)}')
+$s=$s.Replace('.card{background:#fff;border:1px solid #dfe6f0;border-radius:16px;padding:22px;margin-bottom:18px;box-shadow:0 8px 24px #10233f0d}', '.card{background:#fff;border:1px solid #e4e7ec;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 8px 24px #10233f0d}')
+$s=$s.Replace('<header class="top"><h1 id="welcome">User Portal</h1><p>Submit and track your IT support tickets.</p><button id="signout">Sign out</button></header>', '<header class="top"><div><h1 id="welcome">User Portal</h1><p>Submit and track your IT support tickets.</p></div><button id="signout">Sign out</button></header>')
+Set-Content $p $s -NoNewline

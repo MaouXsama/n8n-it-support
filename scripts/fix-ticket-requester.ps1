@@ -1,0 +1,4 @@
+$p='dashboard/create-ticket.html';$s=Get-Content $p -Raw
+$s=$s.Replace("const token=sessionStorage.getItem('token');if(!token)location.href='/login';const headers={Authorization:'Bearer '+token};fetch('/api/auth/me',{headers}).then(r=>r.json()).then(j=>{if(!j.user||j.user.role!=='user'){location.href='/dashboard/';return}document.getElementById('welcome').textContent='Welcome, '+j.user.full_name+' · '+j.user.email});", "const token=sessionStorage.getItem('token');if(!token)location.href='/login';const headers={Authorization:'Bearer '+token};let requesterEmail='';fetch('/api/auth/me',{headers}).then(r=>r.json()).then(j=>{if(!j.user||j.user.role!=='user'){location.href='/dashboard/';return}requesterEmail=j.user.email;document.getElementById('welcome').textContent='Welcome, '+j.user.full_name+' · '+j.user.email});")
+$s=$s.Replace("requester:sessionStorage.getItem('userEmail')||''", "requester:requesterEmail")
+Set-Content $p $s -NoNewline

@@ -1,0 +1,628 @@
+{
+  "updatedAt": "2026-09-26T22:28:47.990Z",
+  "createdAt": "2026-09-24T18:09:49.717Z",
+  "id": "0jpOrbi9n4kcGFZT",
+  "name": "01 - Mock Ticket Intake",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ticket-intake",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "55fb0c73-e029-403d-8c91-ac23d0e1a95e",
+      "name": "Webhook",
+      "webhookId": "e0771826-ab68-4ef3-bcf0-89b4c122a9e2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c791ae13-9e8b-49eb-833f-452aaade325d",
+              "name": "ticket_id",
+              "value": "={{ $json.body ? $json.body.ticket_id : $json.ticket_id }}",
+              "type": "string"
+            },
+            {
+              "id": "2e1a1fd3-f498-45c4-b601-819b87225181",
+              "name": "title",
+              "value": "={{ $json.body ? $json.body.title : $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "e6fc577f-592b-4c4b-a3b5-56325085b7cf",
+              "name": "description",
+              "value": "={{ $json.body ? $json.body.description : $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "b3509f6f-4de9-44d3-9a4f-b7a22b315cd1",
+              "name": "requester",
+              "value": "={{ $json.body ? $json.body.requester : $json.requester }}",
+              "type": "string"
+            },
+            {
+              "id": "eda59a3a-27ed-4bad-af87-aade234216be",
+              "name": "category",
+              "value": "={{ $json.body ? $json.body.category : $json.category }}",
+              "type": "string"
+            },
+            {
+              "id": "9fbd984e-1b27-45f4-b1dd-2650d2b4c003",
+              "name": "status",
+              "value": "Open",
+              "type": "string"
+            },
+            {
+              "id": "737c0e81-adb9-4701-bbf7-e2ccc76a7163",
+              "name": "created_at",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "5bb018a6-2d38-4daa-94e1-02b51061eea9",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, message: 'Ticket received successfully', ticket: $('Insert ticket into PostgreSQL').first().json, notification: $('Insert the notification record').first().json } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1344,
+        0
+      ],
+      "id": "ef9dc9fb-0990-4e29-8702-58f7d41d1d42",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const department = $json.department;\n\nconst recipientGroups = {\n  Networking: 'Networking Team',\n  'IT Helpdesk': 'IT Helpdesk Team',\n  Software: 'Software Team'\n};\n\nreturn {\n  json: {\n    ...$json,\n    notification_ticket_id: $json.ticket_id,\n    notification_department: department,\n    recipient_group: recipientGroups[department] || 'IT Helpdesk Team',\n    notification_message:\n      `New ${department} ticket: ${$json.title}. ` +\n      `SLA: ${$json.sla_hours} hours.`\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        0
+      ],
+      "id": "704eecdf-e1c8-43e8-983f-15c4fd4b0a7e",
+      "name": "Prepare Notification"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO tickets (\n  ticket_id, title, description, requester, department, priority, sla_hours,\n  status, classification_status, classification_keyword, created_at, due_at\n) VALUES (\n  '{{ $json.ticket_id }}',\n  '{{ $json.title }}',\n  '{{ $json.description }}',\n  '{{ $json.requester }}',\n  '{{ $json.department }}',\n  '{{ $json.priority }}',\n  {{ $json.sla_hours }},\n  '{{ $json.status }}',\n  '{{ $json.classification_status }}',\n  '{{ $json.classification_keyword }}',\n  '{{ $json.created_at }}',\n  '{{ $json.due_at }}'\n)\nRETURNING *;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        672,
+        0
+      ],
+      "id": "f6539ff0-7136-4418-860c-c3b15e9542d9",
+      "name": "Insert ticket into PostgreSQL",
+      "columns": {
+        "mappingMode": "defineBelow",
+        "value": {
+          "ticket_id": "={{ $json.ticket_id }}",
+          "title": "={{ $json.title }}",
+          "description": "={{ $json.description }}",
+          "requester": "={{ $json.requester }}",
+          "department": "={{ $json.department }}",
+          "sla_hours": "={{ $json.sla_hours }}",
+          "status": "={{ $json.status }}",
+          "classification_status": "={{ $json.classification_status }}",
+          "classification_keyword": "={{ $json.classification_keyword }}",
+          "created_at": "={{ $json.created_at }}",
+          "due_at": "={{ $json.due_at }}"
+        },
+        "matchingColumns": [
+          "id"
+        ],
+        "schema": [
+          {
+            "id": "id",
+            "displayName": "id",
+            "required": false,
+            "defaultMatch": true,
+            "display": false,
+            "type": "string",
+            "canBeUsedToMatch": true,
+            "removed": true
+          },
+          {
+            "id": "ticket_id",
+            "displayName": "ticket_id",
+            "required": true,
+            "defaultMatch": false,
+            "display": true,
+            "type": "string",
+            "canBeUsedToMatch": true,
+            "removed": false
+          },
+          {
+            "id": "title",
+            "displayName": "title",
+            "required": true,
+            "defaultMatch": false,
+            "display": true,
+            "type": "string",
+            "canBeUsedToMatch": true,
+            "removed": false
+          },
+          {
+            "id": "description",
+            "displayName": "description",
+            "required": true,
+            "defaultMatch": false,
+            "display": true,
+            "type": "string",
+            "canBeUsedToMatch": true,
+            "removed": false
+          },
+          {
+            "id": "requester",
+            "displayName": "requester",
+            "required": true,
+            "defaultMatch": false,
+            "display": true,
+            "type": "string",
+            "canBeUsedToMatch": true,
+            "removed": false
+          },
+          {
+            "id": "department",
+            "displayName": "department",
+            "required": true,
+            "defaultMatch": false,
+            "display": true,
+            "type": "string",
+            "canBeUsedToMatch": true,
+            "removed": false
+          },
+          {
+            "id": "sla_hours",
+            "displayName": "sla_hours",
+            "required": true,
+            "defaultMatch": false,
+            "display": true,
+            "type": "number",
+            "canBeUsedToMatch": true,
+            "removed": false
+          },
+          {
+            "id": "status",
+            "displayName": "status",
+            "required": true,
+            "defaultMatch": false,
+            "display": true,
+            "type": "string",
+            "canBeUsedToMatch": true,
+            "removed": false
+          },
+          {
+            "id": "classification_status",
+            "displayName": "classification_status",
+            "required": false,
+            "defaultMatch": false,
+            "display": true,
+            "type": "string",
+            "canBeUsedToMatch": true,
+            "removed": false
+          },
+          {
+            "id": "classification_keyword",
+            "displayName": "classification_keyword",
+            "required": false,
+            "defaultMatch": false,
+            "display": true,
+            "type": "string",
+            "canBeUsedToMatch": true,
+            "removed": false
+          },
+          {
+            "id": "created_at",
+            "displayName": "created_at",
+            "required": false,
+            "defaultMatch": false,
+            "display": true,
+            "type": "dateTime",
+            "canBeUsedToMatch": true,
+            "removed": false
+          },
+          {
+            "id": "due_at",
+            "displayName": "due_at",
+            "required": false,
+            "defaultMatch": false,
+            "display": true,
+            "type": "dateTime",
+            "canBeUsedToMatch": true,
+            "removed": false
+          },
+          {
+            "id": "completed_at",
+            "displayName": "completed_at",
+            "required": false,
+            "defaultMatch": false,
+            "display": true,
+            "type": "dateTime",
+            "canBeUsedToMatch": true,
+            "removed": true
+          }
+        ],
+        "attemptToConvertTypes": false,
+        "convertFieldsToString": false
+      },
+      "credentials": {
+        "postgres": {
+          "id": "WUUeEoip7NlKgCwJ",
+          "name": "Azure PostgreSQL n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const title = String($json.title || '').toLowerCase();\nconst description = String($json.description || '').toLowerCase();\nconst text = `${title} ${description}`;\nconst ticketId = $json.ticket_id && $json.ticket_id !== 'null' ? $json.ticket_id : `T-${Date.now().toString().slice(-8)}`;\n\nconst rules = [\n  ['Networking', ['cannot connect to vpn','vpn not working','vpn down','vpn','wireless network','wi-fi','wifi','router','switch','firewall','dns','internet','network','connection']],\n  ['IT Helpdesk', ['forgot my password','password','account','login','log in','sign in','printer','laptop','keyboard','mouse','email']],\n  ['Software', ['application crashes','software','application','app','bug','error','microsoft office','install','program']]\n];\nlet department = 'IT Helpdesk';\nlet matchedKeyword = null;\nfor (const [name, keywords] of rules) {\n  const match = keywords.find((keyword) => text.includes(keyword));\n  if (match) { department = name; matchedKeyword = match; break; }\n}\n\nlet priority = 'Normal';\nif (/(security incident|security breach|company-wide outage|production outage|production down|production unavailable|multiple users affected|everyone affected)/.test(text)) priority = 'Critical';\nelse if (/(cannot access|can't access|unable to access|blocked|unavailable|urgent|vpn not working|vpn down|will not start|won't start|cannot start|not responding)/.test(text)) priority = 'High';\nelse if (/(forgot my password|access request|installation request|install|need access|minor|general request|new keyboard)/.test(text)) priority = 'Low';\n\nconst slaHours = { Networking: 4, 'IT Helpdesk': 2, Software: 6 };\nreturn { json: { ...$json, ticket_id: ticketId, department, priority, sla_hours: slaHours[department], due_at: new Date(Date.now() + slaHours[department] * 3600000).toISOString(), classification_keyword: matchedKeyword, classification_status: matchedKeyword ? 'automatic' : 'default_manual_review' } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "17b51684-e19c-4889-b64f-e3254917e64f",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "notifications",
+          "mode": "list",
+          "cachedResultName": "notifications"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ticket_id": "={{ $json.notification_ticket_id }}",
+            "department": "={{ $json.notification_department }}",
+            "recipient_group": "={{ $json.recipient_group }}",
+            "message": "={{ $json.notification_message }}",
+            "channel": "gmail",
+            "status": "sent"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ticket_id",
+              "displayName": "ticket_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "recipient_group",
+              "displayName": "recipient_group",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sent_at",
+              "displayName": "sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.7,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "69b2b32c-6c21-4d2d-971d-e7f2db4a268b",
+      "name": "Insert the notification record",
+      "credentials": {
+        "postgres": {
+          "id": "WUUeEoip7NlKgCwJ",
+          "name": "Azure PostgreSQL n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.requester }}",
+        "subject": "=Your IT support ticket {{ $json.ticket_id }} has been created",
+        "emailType": "text",
+        "message": "=Your ticket was received successfully. Ticket ID: {{ $json.ticket_id }}. The IT team will review your request.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        672,
+        -240
+      ],
+      "id": "f0a1b2c3-d4e5-4678-9012-3456789abcde",
+      "name": "Send requester creation email",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "r0i7DQEx6fbebKDM",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "sda.n8n.project@gmail.com",
+        "subject": "=New {{ $json.department }} ticket {{ $json.ticket_id }} requires review",
+        "emailType": "html",
+        "message": "=A new ticket has been created.<br><br><b>Ticket ID:</b> {{ $json.ticket_id }}<br><b>Department:</b> {{ $json.department }}<br><b>Priority:</b> {{ $json.priority }}<br><b>SLA:</b> {{ $json.sla_hours }} hours<br><b>Requester:</b> {{ $json.requester }}<br><b>Title:</b> {{ $json.title }}<br><b>Description:</b> {{ $json.description }}<br><br>Please review it in the support dashboard.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        672,
+        240
+      ],
+      "id": "a1b2c3d4-e5f6-4789-0123-456789abcdef",
+      "name": "Send team notification email",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "r0i7DQEx6fbebKDM",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Notification": {
+      "main": [
+        [
+          {
+            "node": "Insert the notification record",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send requester creation email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send team notification email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert ticket into PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Prepare Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Insert ticket into PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert the notification record": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send requester creation email": {
+      "main": []
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n-project-dev-2rd4r7.eastus.cloudapp.azure.com",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-US) PowerShell/7.6.5",
+            "content-length": "218",
+            "accept-encoding": "gzip, deflate, br",
+            "content-type": "application/json",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "82.167.24.39",
+            "x-forwarded-host": "n8n-project-dev-2rd4r7.eastus.cloudapp.azure.com",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "requester": "sda.n8n.project@gmail.com",
+            "description": "Verifying the Gmail node is now on the only active path.",
+            "title": "Final Gmail route test",
+            "category": "email",
+            "ticket_id": "G-TEST-003"
+          },
+          "webhookUrl": "https://n8n-project-dev-2rd4r7.eastus.cloudapp.azure.com/webhook/ticket-intake",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "735b0c47-e70a-476b-a0a7-9330e4f010af",
+  "activeVersionId": "735b0c47-e70a-476b-a0a7-9330e4f010af",
+  "versionCounter": 129,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-09-25T00:59:20.206Z",
+      "createdAt": "2026-09-25T00:59:20.206Z",
+      "role": "workflow:owner",
+      "workflowId": "0jpOrbi9n4kcGFZT",
+      "projectId": "Wn68snPPgZiLQTJo",
+      "project": {
+        "updatedAt": "2026-09-25T00:55:57.084Z",
+        "createdAt": "2026-09-25T00:52:53.630Z",
+        "id": "Wn68snPPgZiLQTJo",
+        "name": "Yazeed Komosany <yazeed.mk0@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "42c84660-5a7e-473a-ba67-3bebf9b3acab"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version 735b0c47",
+    "description": ""
+  }
+}

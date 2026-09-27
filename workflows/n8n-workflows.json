@@ -1,0 +1,1003 @@
+[
+  {
+    "updatedAt": "2026-09-24T22:11:36.072Z",
+    "createdAt": "2026-09-24T19:07:57.175Z",
+    "id": "fHZpYNgetCCHtknG",
+    "name": "00 - Database Setup",
+    "description": null,
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "8833c19b-fb59-4587-bf09-a0df502b3df2",
+        "name": "When clicking ‘Execute workflow’"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "CREATE TABLE IF NOT EXISTS tickets (\n    id SERIAL PRIMARY KEY,\n    ticket_id VARCHAR(50) UNIQUE NOT NULL,\n    title TEXT NOT NULL,\n    description TEXT NOT NULL,\n    requester VARCHAR(255) NOT NULL,\n    department VARCHAR(50) NOT NULL,\n    priority VARCHAR(20) NOT NULL DEFAULT 'Normal',\n    priority VARCHAR(20) NOT NULL DEFAULT 'Normal',\n    priority VARCHAR(20) NOT NULL DEFAULT 'Normal',\n    sla_hours INTEGER NOT NULL,\n    status VARCHAR(30) NOT NULL DEFAULT 'Open',\n    classification_status VARCHAR(50),\n    classification_keyword VARCHAR(100),\n    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n    due_at TIMESTAMPTZ,\n    completed_at TIMESTAMPTZ\n);\nALTER TABLE tickets ADD COLUMN IF NOT EXISTS priority VARCHAR(20) NOT NULL DEFAULT 'Normal';",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.7,
+        "position": [
+          224,
+          0
+        ],
+        "id": "cb030293-a225-4567-8b0a-0ce09ad3b42d",
+        "name": "Execute a SQL query",
+        "credentials": {
+          "postgres": {
+            "id": "rSYr4PNrH797UTa2",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "CREATE TABLE IF NOT EXISTS notifications (\n    id SERIAL PRIMARY KEY,\n    ticket_id VARCHAR(50) NOT NULL,\n    department VARCHAR(50) NOT NULL,\n    recipient_group VARCHAR(100) NOT NULL,\n    message TEXT NOT NULL,\n    channel VARCHAR(30) NOT NULL DEFAULT 'mock',\n    status VARCHAR(30) NOT NULL DEFAULT 'sent',\n    sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW()\n);",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.7,
+        "position": [
+          448,
+          0
+        ],
+        "id": "9f7ffddb-2aa5-43ed-8520-d5db4fcc75d7",
+        "name": "Execute a SQL query1",
+        "credentials": {
+          "postgres": {
+            "id": "rSYr4PNrH797UTa2",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Execute a SQL query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute a SQL query": {
+        "main": [
+          [
+            {
+              "node": "Execute a SQL query1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "e4364de3-d662-47a4-b190-da5000904ff5",
+    "activeVersionId": null,
+    "versionCounter": 7,
+    "triggerCount": 0,
+    "sourceWorkflowId": null,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-09-24T19:07:57.175Z",
+        "createdAt": "2026-09-24T19:07:57.175Z",
+        "role": "workflow:owner",
+        "workflowId": "fHZpYNgetCCHtknG",
+        "projectId": "D0ADDYIT4fIFPcl8",
+        "project": {
+          "updatedAt": "2026-09-24T18:04:44.225Z",
+          "createdAt": "2026-09-24T18:01:16.355Z",
+          "id": "D0ADDYIT4fIFPcl8",
+          "name": "Yazeed Komosany <yazeed.mk0@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "customTelemetryTags": [],
+          "creatorId": "640372b6-46bd-4f08-be64-08d7493e2289"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  },
+  {
+    "updatedAt": "2026-09-24T22:55:09.457Z",
+    "createdAt": "2026-09-24T18:09:49.717Z",
+    "id": "0jpOrbi9n4kcGFZT",
+    "name": "01 - Mock Ticket Intake",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "ticket-intake",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "55fb0c73-e029-403d-8c91-ac23d0e1a95e",
+        "name": "Webhook",
+        "webhookId": "e0771826-ab68-4ef3-bcf0-89b4c122a9e2"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "c791ae13-9e8b-49eb-833f-452aaade325d",
+                "name": "ticket_id",
+                "value": "={{ $json.body.ticket_id }}",
+                "type": "string"
+              },
+              {
+                "id": "2e1a1fd3-f498-45c4-b601-819b87225181",
+                "name": "title",
+                "value": "={{ $json.body.title }}",
+                "type": "string"
+              },
+              {
+                "id": "e6fc577f-592b-4c4b-a3b5-56325085b7cf",
+                "name": "description",
+                "value": "={{ $json.body.description }}",
+                "type": "string"
+              },
+              {
+                "id": "b3509f6f-4de9-44d3-9a4f-b7a22b315cd1",
+                "name": "requester",
+                "value": "={{ $json.body.requester }}",
+                "type": "string"
+              },
+              {
+                "id": "eda59a3a-27ed-4bad-af87-aade234216be",
+                "name": "category",
+                "value": "={{ $json.body.category }}",
+                "type": "string"
+              },
+              {
+                "id": "9fbd984e-1b27-45f4-b1dd-2650d2b4c003",
+                "name": "status",
+                "value": "Open",
+                "type": "string"
+              },
+              {
+                "id": "737c0e81-adb9-4701-bbf7-e2ccc76a7163",
+                "name": "created_at",
+                "value": "={{ $now }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.5,
+        "position": [
+          224,
+          0
+        ],
+        "id": "5bb018a6-2d38-4daa-94e1-02b51061eea9",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ { success: true, message: 'Ticket received successfully', ticket: $('Insert ticket into PostgreSQL').first().json, notification: $('Insert the notification record').first().json } }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          1344,
+          0
+        ],
+        "id": "ef9dc9fb-0990-4e29-8702-58f7d41d1d42",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "jsCode": "const department = $json.department;\n\nconst recipientGroups = {\n  Networking: 'Networking Team',\n  'IT Helpdesk': 'IT Helpdesk Team',\n  Software: 'Software Team'\n};\n\nreturn {\n  json: {\n    ...$json,\n    notification_ticket_id: $json.ticket_id,\n    notification_department: department,\n    recipient_group: recipientGroups[department] || 'IT Helpdesk Team',\n    notification_message:\n      `New ${department} ticket: ${$json.title}. ` +\n      `SLA: ${$json.sla_hours} hours.`\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          896,
+          0
+        ],
+        "id": "704eecdf-e1c8-43e8-983f-15c4fd4b0a7e",
+        "name": "Prepare Notification"
+      },
+      {
+        "parameters": {
+          "schema": {
+            "__rl": true,
+            "mode": "list",
+            "value": "public"
+          },
+          "table": {
+            "__rl": true,
+            "value": "tickets",
+            "mode": "list",
+            "cachedResultName": "tickets"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "ticket_id": "={{ $json.ticket_id }}",
+              "title": "={{ $json.title }}",
+              "description": "={{ $json.description }}",
+              "requester": "={{ $json.requester }}",
+              "department": "={{ $json.department }}",
+              "sla_hours": "={{ $json.sla_hours }}",
+              "status": "={{ $json.status }}",
+              "classification_status": "={{ $json.classification_status }}",
+              "classification_keyword": "={{ $json.classification_keyword }}",
+              "created_at": "={{ $json.created_at }}",
+              "due_at": "={{ $json.due_at }}",
+              "priority": "={{ $json.priority }}"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "ticket_id",
+                "displayName": "ticket_id",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "title",
+                "displayName": "title",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "description",
+                "displayName": "description",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "requester",
+                "displayName": "requester",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "department",
+                "displayName": "department",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "sla_hours",
+                "displayName": "sla_hours",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "classification_status",
+                "displayName": "classification_status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "classification_keyword",
+                "displayName": "classification_keyword",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "created_at",
+                "displayName": "created_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "dateTime",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "due_at",
+                "displayName": "due_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "dateTime",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "completed_at",
+                "displayName": "completed_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "dateTime",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.7,
+        "position": [
+          672,
+          0
+        ],
+        "id": "f6539ff0-7136-4418-860c-c3b15e9542d9",
+        "name": "Insert ticket into PostgreSQL",
+        "credentials": {
+          "postgres": {
+            "id": "rSYr4PNrH797UTa2",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForEachItem",
+          "jsCode": "const title = String($json.title || '').toLowerCase();\nconst description = String($json.description || '').toLowerCase();\nconst text = `${title} ${description}`;\n\nconst ticketId = $json.ticket_id && $json.ticket_id !== 'null'\n  ? $json.ticket_id\n  : `T-${Date.now().toString().slice(-8)}`;\nconst departments = {\n  Networking: [\n    'vpn',\n    'network',\n    'wifi',\n    'wi-fi',\n    'router',\n    'switch',\n    'firewall',\n    'dns',\n    'internet',\n    'connection'\n  ],\n  'IT Helpdesk': [\n    'password',\n    'laptop',\n    'account',\n    'access',\n    'printer',\n    'email',\n    'keyboard',\n    'mouse'\n  ],\n  Software: [\n    'software',\n    'application',\n    'app',\n    'bug',\n    'error',\n    'system',\n    'code',\n    'program'\n  ]\n};\n\nlet department = 'IT Helpdesk';\nlet matchedKeyword = null;\n\nfor (const [name, keywords] of Object.entries(departments)) {\n  const match = keywords.find((keyword) => text.includes(keyword));\n\n  if (match) {\n    department = name;\n    matchedKeyword = match;\n    break;\n  }\n}\n\nconst slaHours = {\n  Networking: 4,\n  'IT Helpdesk': 2,\n  Software: 6\n};\n\nlet priority = 'Normal';\nif (/(security|breach|outage|production down|multiple users)/.test(text)) {\n  priority = 'Critical';\n} else if (/(vpn|cannot access|unavailable|blocked|urgent)/.test(text)) {\n  priority = 'High';\n} else if (/(request|question|minor|general)/.test(text)) {\n  priority = 'Low';\n}\nconst dueAt = new Date(\n  Date.now() + slaHours[department] * 60 * 60 * 1000\n).toISOString();\n\nreturn {\n  json: {\n    ...$json,\n    ticket_id: ticketId,\n    department,\n    priority,\n    sla_hours: slaHours[department],\n    due_at: dueAt,\n    classification_keyword: matchedKeyword,\n    classification_status: matchedKeyword ? 'automatic' : 'default_manual_review'\n  }\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          448,
+          0
+        ],
+        "id": "17b51684-e19c-4889-b64f-e3254917e64f",
+        "name": "Code"
+      },
+      {
+        "parameters": {
+          "schema": {
+            "__rl": true,
+            "mode": "list",
+            "value": "public"
+          },
+          "table": {
+            "__rl": true,
+            "value": "notifications",
+            "mode": "list",
+            "cachedResultName": "notifications"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "ticket_id": "={{ $json.notification_ticket_id }}",
+              "department": "={{ $json.notification_department }}",
+              "recipient_group": "={{ $json.recipient_group }}",
+              "message": "={{ $json.notification_message }}",
+              "channel": "mock",
+              "status": "sent"
+            },
+            "matchingColumns": [
+              "id"
+            ],
+            "schema": [
+              {
+                "id": "id",
+                "displayName": "id",
+                "required": false,
+                "defaultMatch": true,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "removed": true
+              },
+              {
+                "id": "ticket_id",
+                "displayName": "ticket_id",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "department",
+                "displayName": "department",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "recipient_group",
+                "displayName": "recipient_group",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "message",
+                "displayName": "message",
+                "required": true,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "channel",
+                "displayName": "channel",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "sent_at",
+                "displayName": "sent_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "dateTime",
+                "canBeUsedToMatch": true,
+                "removed": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.7,
+        "position": [
+          1120,
+          0
+        ],
+        "id": "69b2b32c-6c21-4d2d-971d-e7f2db4a268b",
+        "name": "Insert the notification record",
+        "credentials": {
+          "postgres": {
+            "id": "rSYr4PNrH797UTa2",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "Code",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare Notification": {
+        "main": [
+          [
+            {
+              "node": "Insert the notification record",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert ticket into PostgreSQL": {
+        "main": [
+          [
+            {
+              "node": "Prepare Notification",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code": {
+        "main": [
+          [
+            {
+              "node": "Insert ticket into PostgreSQL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Insert the notification record": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "00bed8fd-2e2e-4a63-8f31-992069b0e870",
+    "activeVersionId": "00bed8fd-2e2e-4a63-8f31-992069b0e870",
+    "versionCounter": 94,
+    "triggerCount": 1,
+    "sourceWorkflowId": null,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-09-24T18:09:49.717Z",
+        "createdAt": "2026-09-24T18:09:49.717Z",
+        "role": "workflow:owner",
+        "workflowId": "0jpOrbi9n4kcGFZT",
+        "projectId": "D0ADDYIT4fIFPcl8",
+        "project": {
+          "updatedAt": "2026-09-24T18:04:44.225Z",
+          "createdAt": "2026-09-24T18:01:16.355Z",
+          "id": "D0ADDYIT4fIFPcl8",
+          "name": "Yazeed Komosany <yazeed.mk0@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "customTelemetryTags": [],
+          "creatorId": "640372b6-46bd-4f08-be64-08d7493e2289"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": "Version 00bed8fd",
+      "description": ""
+    }
+  },
+  {
+    "updatedAt": "2026-09-24T22:32:09.149Z",
+    "createdAt": "2026-09-24T22:25:36.829Z",
+    "id": "KxtGRf2b9ksw99nr",
+    "name": "02 - SLA Reminder Check",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 1
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.4,
+        "position": [
+          0,
+          0
+        ],
+        "id": "39e59b69-6095-46ab-8f49-74e17aa14a5c",
+        "name": "Schedule Trigger"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "INSERT INTO notifications (\n    ticket_id,\n    department,\n    recipient_group,\n    message,\n    channel,\n    status\n)\nSELECT\n    t.ticket_id,\n    t.department,\n    t.department || ' Team',\n    'SLA warning: ticket ' || t.ticket_id ||\n    ' is due within 15 minutes.',\n    'mock',\n    'sent'\nFROM tickets t\nWHERE t.status = 'Open'\n  AND t.due_at > NOW()\n  AND t.due_at <= NOW() + INTERVAL '15 minutes'\n  AND NOT EXISTS (\n      SELECT 1\n      FROM notifications n\n      WHERE n.ticket_id = t.ticket_id\n        AND n.message LIKE 'SLA warning:%'\n  )\n\nUNION ALL\n\nSELECT\n    t.ticket_id,\n    t.department,\n    t.department || ' Team',\n    'SLA due: ticket ' || t.ticket_id ||\n    ' has reached its deadline and is still open.',\n    'mock',\n    'sent'\nFROM tickets t\nWHERE t.status = 'Open'\n  AND t.due_at <= NOW()\n  AND NOT EXISTS (\n      SELECT 1\n      FROM notifications n\n      WHERE n.ticket_id = t.ticket_id\n        AND n.message LIKE 'SLA due:%'\n  );",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.7,
+        "position": [
+          224,
+          0
+        ],
+        "id": "ca2b37ee-c3e1-4df5-80cb-4e94ab4ab6c3",
+        "name": "Execute a SQL query",
+        "credentials": {
+          "postgres": {
+            "id": "rSYr4PNrH797UTa2",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Execute a SQL query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": {
+      "node:Schedule Trigger": {
+        "recurrenceRules": [
+          null
+        ],
+        "recurrenceRuleSignatures": [
+          null
+        ]
+      }
+    },
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "b0d9df42-fad7-43fc-ab62-42e982ede06a",
+    "activeVersionId": "b0d9df42-fad7-43fc-ab62-42e982ede06a",
+    "versionCounter": 8,
+    "triggerCount": 1,
+    "sourceWorkflowId": null,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-09-24T22:25:36.829Z",
+        "createdAt": "2026-09-24T22:25:36.829Z",
+        "role": "workflow:owner",
+        "workflowId": "KxtGRf2b9ksw99nr",
+        "projectId": "D0ADDYIT4fIFPcl8",
+        "project": {
+          "updatedAt": "2026-09-24T18:04:44.225Z",
+          "createdAt": "2026-09-24T18:01:16.355Z",
+          "id": "D0ADDYIT4fIFPcl8",
+          "name": "Yazeed Komosany <yazeed.mk0@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "customTelemetryTags": [],
+          "creatorId": "640372b6-46bd-4f08-be64-08d7493e2289"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": "Version b0d9df42",
+      "description": ""
+    }
+  },
+  {
+    "updatedAt": "2026-09-24T22:44:33.52Z",
+    "createdAt": "2026-09-24T22:40:32.183Z",
+    "id": "Etn85v1nMB40Wyhi",
+    "name": "03 - Ticket Status Update",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "ticket-status",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "09da33b8-e32e-4ecd-86ba-2414ef18ed58",
+        "name": "Webhook",
+        "webhookId": "a147820c-0a71-4b3f-a0dd-a01d7176fded"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "UPDATE tickets\nSET\n    status = '{{ $json.body.status }}',\n    completed_at = CASE\n        WHEN '{{ $json.body.status }}' = 'Completed'\n        THEN NOW()\n        ELSE completed_at\n    END\nWHERE ticket_id = '{{ $json.body.ticket_id }}';",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.7,
+        "position": [
+          224,
+          0
+        ],
+        "id": "f492067b-2d2e-4aea-b6ba-e97de3218334",
+        "name": "Execute a SQL query",
+        "credentials": {
+          "postgres": {
+            "id": "rSYr4PNrH797UTa2",
+            "name": "Postgres account"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Execute a SQL query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "68e83b8b-29d2-4e0e-a1e8-389f159a4f3e",
+    "activeVersionId": "68e83b8b-29d2-4e0e-a1e8-389f159a4f3e",
+    "versionCounter": 6,
+    "triggerCount": 1,
+    "sourceWorkflowId": null,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-09-24T22:40:32.183Z",
+        "createdAt": "2026-09-24T22:40:32.183Z",
+        "role": "workflow:owner",
+        "workflowId": "Etn85v1nMB40Wyhi",
+        "projectId": "D0ADDYIT4fIFPcl8",
+        "project": {
+          "updatedAt": "2026-09-24T18:04:44.225Z",
+          "createdAt": "2026-09-24T18:01:16.355Z",
+          "id": "D0ADDYIT4fIFPcl8",
+          "name": "Yazeed Komosany <yazeed.mk0@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "customTelemetryTags": [],
+          "creatorId": "640372b6-46bd-4f08-be64-08d7493e2289"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": "Version 68e83b8b",
+      "description": ""
+    }
+  },
+  {
+    "updatedAt": "2026-09-24T23:08:42.009Z",
+    "createdAt": "2026-09-24T23:01:51.802Z",
+    "id": "JgSJa3PxZcMbISoA",
+    "name": "04 - Ticket Dashboard API",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "path": "dashboard-metrics",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "b8b1ba3d-6064-4cf5-ac31-90b0cb1bc564",
+        "name": "Webhook",
+        "webhookId": "80d2d880-66e9-4772-bc79-8d61afe938d0"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT json_build_object(\n  'metrics', json_build_object(\n    'total_open', COUNT(*) FILTER (WHERE status = 'Open'),\n    'networking_open', COUNT(*) FILTER (WHERE status = 'Open' AND department = 'Networking'),\n    'helpdesk_open', COUNT(*) FILTER (WHERE status = 'Open' AND department = 'IT Helpdesk'),\n    'software_open', COUNT(*) FILTER (WHERE status = 'Open' AND department = 'Software'),\n    'networking_total', COUNT(*) FILTER (WHERE department = 'Networking'),\n    'helpdesk_total', COUNT(*) FILTER (WHERE department = 'IT Helpdesk'),\n    'software_total', COUNT(*) FILTER (WHERE department = 'Software'),\n    'completed_today', COUNT(*) FILTER (WHERE status = 'Completed' AND completed_at >= CURRENT_DATE),\n    'completed_last_7_days', COUNT(*) FILTER (WHERE status = 'Completed' AND completed_at >= CURRENT_DATE - INTERVAL '7 days'),\n    'overdue_open', COUNT(*) FILTER (WHERE status = 'Open' AND due_at <= NOW()),\n    'created_today', COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE),\n    'completed_within_sla', COUNT(*) FILTER (WHERE status = 'Completed' AND completed_at IS NOT NULL AND completed_at <= due_at),\n    'completed_after_sla', COUNT(*) FILTER (WHERE status = 'Completed' AND completed_at IS NOT NULL AND completed_at > due_at),\n    'sla_compliance_percentage', COALESCE(ROUND(100.0 * COUNT(*) FILTER (WHERE status = 'Completed' AND completed_at <= due_at) / NULLIF(COUNT(*) FILTER (WHERE status = 'Completed'), 0), 1), 0),\n    'refreshed_at', NOW()\n  ),\n  'tickets', COALESCE((\n    SELECT json_agg(row_to_json(ticket_rows) ORDER BY ticket_rows.created_at DESC)\n    FROM (\n      SELECT ticket_id, title, description, requester, department, priority,\n             sla_hours, status, classification_status, created_at, due_at, completed_at\n      FROM public.tickets\n      ORDER BY created_at DESC\n      LIMIT 100\n    ) ticket_rows\n  ), '[]'::json)\n) AS dashboard\nFROM public.tickets;",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.7,
+        "position": [
+          224,
+          0
+        ],
+        "id": "ef32c9b6-c265-43e2-b419-7a50f3160ecf",
+        "name": "Execute a SQL query",
+        "credentials": {
+          "postgres": {
+            "id": "rSYr4PNrH797UTa2",
+            "name": "Postgres account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ $json.dashboard }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          448,
+          0
+        ],
+        "id": "1f0e7ba3-8b2f-40e8-b36f-ac1090cc2867",
+        "name": "Respond to Webhook"
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Execute a SQL query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute a SQL query": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "b80001d8-e79c-4d4a-98e2-917ad7f7a827",
+    "activeVersionId": "b80001d8-e79c-4d4a-98e2-917ad7f7a827",
+    "versionCounter": 11,
+    "triggerCount": 1,
+    "sourceWorkflowId": null,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-09-24T23:01:51.802Z",
+        "createdAt": "2026-09-24T23:01:51.802Z",
+        "role": "workflow:owner",
+        "workflowId": "JgSJa3PxZcMbISoA",
+        "projectId": "D0ADDYIT4fIFPcl8",
+        "project": {
+          "updatedAt": "2026-09-24T18:04:44.225Z",
+          "createdAt": "2026-09-24T18:01:16.355Z",
+          "id": "D0ADDYIT4fIFPcl8",
+          "name": "Yazeed Komosany <yazeed.mk0@gmail.com>",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "customTelemetryTags": [],
+          "creatorId": "640372b6-46bd-4f08-be64-08d7493e2289"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": "Version b80001d8",
+      "description": ""
+    }
+  }
+]
