@@ -82,7 +82,7 @@ function ticketOrder(mode) {
 }
 function csvCell(value) {
   let text=value===null||value===undefined?'':String(value);
-  if(/^[=+\-@]/.test(text)) text=`'${text}`;
+  if(/^[\t\r ]*[=+\-@]/.test(text)) text=`'${text}`;
   return `"${text.replace(/"/g,'""')}"`;
 }
 function saudiDate(value) {
