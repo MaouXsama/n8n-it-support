@@ -96,6 +96,9 @@
 
     .toolbar { display: flex; gap: 10px; flex-wrap: wrap; background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
     .toolbar input, .toolbar select { flex: 1; min-width: 180px; margin-top: 0; }
+    .export-group { display:none; align-items:center; gap:8px; flex:1; min-width:290px; }
+    .export-group select { min-width:170px; }
+    .export-button { width:auto; min-width:110px; margin:0; padding:10px 14px; white-space:nowrap; }
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 12px; }
     th, td { padding: 14px 10px; border-bottom: 1px solid #eaecf0; text-align: left; white-space: nowrap; }
@@ -258,6 +261,13 @@
         <option value="25">25 per page</option>
         <option value="50">50 per page</option>
       </select>
+      <div class="export-group" id="export-controls">
+        <select id="export-scope" aria-label="Export scope">
+          <option value="filtered">Export filtered tickets</option>
+          <option value="all">Export all tickets</option>
+        </select>
+        <button class="export-button" id="export-button" type="button">Export CSV</button>
+      </div>
     </div>
     <div class="table-wrap">
       <table>
@@ -337,7 +347,10 @@
       document.getElementById('page-title').textContent = title;
       document.getElementById('page-subtitle').textContent = `Welcome, ${currentUser.full_name} · ${currentUser.role === 'full_admin' ? 'All departments' : currentUser.department + ' tickets only'}`;
       if (currentUser.role === 'department_admin') document.querySelectorAll('.department-card').forEach(card => { if (card.dataset.department !== currentUser.department) card.style.display = 'none'; });
-      if (currentUser.role === 'full_admin') loadUsers();
+      if (currentUser.role === 'full_admin') {
+        document.getElementById('export-controls').style.display = 'flex';
+        loadUsers();
+      }
       return true;
     }
 
@@ -394,6 +407,47 @@
       } catch (error) {
         if (requestId !== dashboardRequestId) return;
         target.innerHTML = `<tr><td colspan="9" class="muted">${error.message}. Please refresh the page.</td></tr>`;
+      }
+    }
+
+    async function exportTickets() {
+      if (!currentUser || currentUser.role !== 'full_admin') return;
+      const scope = document.getElementById('export-scope').value;
+      const params = new URLSearchParams({ scope, sort: document.getElementById('ticket-sort').value });
+      if (scope === 'filtered') {
+        const filters = {
+          search: document.getElementById('ticket-search').value.trim(),
+          department: document.getElementById('department-filter').value,
+          status: document.getElementById('status-filter').value,
+          priority: document.getElementById('priority-filter').value
+        };
+        Object.entries(filters).forEach(([key, value]) => { if (value) params.set(key, value); });
+      }
+      const button = document.getElementById('export-button');
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Exporting…';
+      try {
+        const response = await fetch(`/api/tickets/export?${params}`, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.message || 'Export failed');
+        }
+        const blob = await response.blob();
+        const disposition = response.headers.get('Content-Disposition') || '';
+        const filename = disposition.match(/filename="([^"]+)"/i)?.[1] || 'masar-tickets.csv';
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(link.href);
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
       }
     }
 
@@ -476,6 +530,7 @@
     document.getElementById('ticket-page-size').addEventListener('change', event => { ticketPageSize = Number(event.target.value); ticketPage = 1; loadDashboard(); });
     document.getElementById('ticket-prev').addEventListener('click', () => { if (ticketPage > 1) { ticketPage -= 1; loadDashboard(); } });
     document.getElementById('ticket-next').addEventListener('click', () => { if (ticketPage < ticketTotalPages) { ticketPage += 1; loadDashboard(); } });
+    document.getElementById('export-button').addEventListener('click', exportTickets);
     document.getElementById('user-search').addEventListener('input', renderUsers);
 
     loadCurrentUser().then(ok => ok && loadDashboard());

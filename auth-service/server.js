@@ -46,6 +46,17 @@ function send(res, status, body) { res.writeHead(status, {'Content-Type':'applic
 function read(req) { return new Promise((resolve,reject)=>{let b='';req.on('data',c=>b+=c);req.on('end',()=>{try{resolve(b?JSON.parse(b):{})}catch(e){reject(e)}})}) }
 function token(user) { return jwt.sign({id:user.id,username:user.username,email:user.email,role:user.role,department:user.department}, secret, {expiresIn:'8h'}); }
 function authUser(req) { const value=req.headers.authorization||''; if(!value.startsWith('Bearer ')) return null; try{return jwt.verify(value.slice(7),secret)}catch{return null} }
+function ticketFilters(url) {
+  const allowedStatuses=['Open','In Progress','Completed','Cancelled'];
+  const allowedPriorities=['Critical','High','Normal','Low'];
+  const allowedDepartments=['Networking','IT Helpdesk','Software'];
+  return {
+    search:(url.searchParams.get('search')||'').trim(),
+    department:allowedDepartments.includes(url.searchParams.get('department'))?url.searchParams.get('department'):'',
+    status:allowedStatuses.includes(url.searchParams.get('status'))?url.searchParams.get('status'):'',
+    priority:allowedPriorities.includes(url.searchParams.get('priority'))?url.searchParams.get('priority'):''
+  };
+}
 function ticketWhere(session, filters={}) {
   const clauses=['archived=FALSE'];
   const values=[];
@@ -68,6 +79,19 @@ function ticketOrder(mode) {
   if(mode==='priority') return `CASE WHEN ${active} THEN 0 WHEN status='Completed' THEN 1 WHEN status='Cancelled' THEN 2 ELSE 3 END, ${priority}, CASE WHEN ${active} THEN due_at END ASC NULLS LAST, ${activity} DESC`;
   if(mode==='recently-completed') return `CASE WHEN status='Completed' THEN 0 WHEN ${active} THEN 1 WHEN status='Cancelled' THEN 2 ELSE 3 END, CASE WHEN status='Completed' THEN completed_at END DESC NULLS LAST, CASE WHEN ${active} THEN due_at END ASC NULLS LAST, created_at DESC`;
   return `CASE WHEN ${active} AND due_at<=NOW() THEN 0 WHEN ${active} THEN 1 WHEN status='Completed' THEN 2 WHEN status='Cancelled' THEN 3 ELSE 4 END, CASE WHEN ${active} THEN due_at END ASC NULLS LAST, ${priority}, ${activity} DESC`;
+}
+function csvCell(value) {
+  let text=value===null||value===undefined?'':String(value);
+  if(/^[=+\-@]/.test(text)) text=`'${text}`;
+  return `"${text.replace(/"/g,'""')}"`;
+}
+function saudiDate(value) {
+  return value ? new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Riyadh',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(value)) : '';
+}
+function slaResult(ticket) {
+  if(ticket.status==='Cancelled') return 'Cancelled';
+  if(ticket.status!=='Completed') return 'Active';
+  return ticket.completed_at&&ticket.due_at&&new Date(ticket.completed_at)>new Date(ticket.due_at)?'After SLA':'Within SLA';
 }
 async function triggerCompletionEmail(ticketId) {
   try {
@@ -116,6 +140,22 @@ async function handler(req,res) {
         if(!url.searchParams.get('ticket_id')) return send(res,400,{message:'ticket_id is required'});
         const c=await pool.query('SELECT * FROM ticket_comments WHERE ticket_id=$1 ORDER BY created_at ASC',[url.searchParams.get('ticket_id')]); return send(res,200,{comments:c.rows});
       }
+      if (url.pathname === '/tickets/export') {
+        if(session.role!=='full_admin') return send(res,403,{message:'Full admin access required'});
+        const filters=url.searchParams.get('scope')==='all'?{}:ticketFilters(url);
+        const scoped=ticketWhere(session,filters);
+        const order=ticketOrder(url.searchParams.get('sort')||'operational');
+        const result=await pool.query(`SELECT ticket_id,title,description,requester,department,priority,status,created_at,due_at,completed_at FROM public.tickets WHERE ${scoped.sql} ORDER BY ${order}`,scoped.values);
+        const headers=['Ticket ID','Title','Description','Requester','Department','Priority','Status','Created At (Saudi Arabia)','SLA Due At (Saudi Arabia)','Completed At (Saudi Arabia)','SLA Result'];
+        const rows=result.rows.map(ticket=>[
+          ticket.ticket_id,ticket.title,ticket.description,ticket.requester,ticket.department,ticket.priority,ticket.status,
+          saudiDate(ticket.created_at),saudiDate(ticket.due_at),saudiDate(ticket.completed_at),slaResult(ticket)
+        ].map(csvCell).join(','));
+        const stamp=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Riyadh',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+        const filename=`masar-tickets-${stamp}.csv`;
+        res.writeHead(200,{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="${filename}"`,'Cache-Control':'no-store','Access-Control-Allow-Origin':'*'});
+        return res.end(`\uFEFF${headers.map(csvCell).join(',')}\r\n${rows.join('\r\n')}`);
+      }
       if (url.pathname === '/tickets/metrics') {
         const scoped=ticketWhere(session);
         const metrics=await pool.query(`SELECT
@@ -140,15 +180,7 @@ async function handler(req,res) {
           FROM public.tickets WHERE ${scoped.sql}`,scoped.values);
         return send(res,200,{metrics:metrics.rows[0]});
       }
-      const allowedStatuses=['Open','In Progress','Completed','Cancelled'];
-      const allowedPriorities=['Critical','High','Normal','Low'];
-      const allowedDepartments=['Networking','IT Helpdesk','Software'];
-      const filters={
-        search:(url.searchParams.get('search')||'').trim(),
-        department:allowedDepartments.includes(url.searchParams.get('department'))?url.searchParams.get('department'):'',
-        status:allowedStatuses.includes(url.searchParams.get('status'))?url.searchParams.get('status'):'',
-        priority:allowedPriorities.includes(url.searchParams.get('priority'))?url.searchParams.get('priority'):''
-      };
+      const filters=ticketFilters(url);
       const requestedPage=Math.max(1,parseInt(url.searchParams.get('page'),10)||1);
       const limit=Math.min(100,Math.max(1,parseInt(url.searchParams.get('limit'),10)||25));
       const scoped=ticketWhere(session,filters);
