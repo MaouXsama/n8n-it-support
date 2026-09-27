@@ -127,7 +127,7 @@
     table { width:100%; table-layout:fixed; border-collapse:collapse; margin-top:12px; }
     th, td { min-width:0; padding:14px 9px; border-bottom:1px solid #eaecf0; overflow:hidden; text-align:left; vertical-align:middle!important; }
     th { height:68px; color:var(--muted); font-size:11px; line-height:1.2; text-transform:uppercase; letter-spacing:.025em; white-space:nowrap; background:#f8fafc; vertical-align:middle!important; }
-    th[data-sort] { padding:0; }
+    th[data-sort], th[data-user-sort] { padding:0; }
     .sort-header { display:flex; align-items:center; justify-content:flex-start; gap:5px; width:100%; min-width:0; height:68px; min-height:68px; margin:0; padding:14px 9px!important; border:0!important; border-radius:0!important; background:transparent!important; color:inherit!important; box-shadow:none!important; font:inherit; line-height:inherit; white-space:nowrap; text-align:left; text-transform:inherit; letter-spacing:inherit; }
     .sort-header:hover { background:#edf4ff!important; color:#1d4ed8!important; box-shadow:none!important; transform:none; }
     .sort-header:focus-visible { position:relative; z-index:1; outline:3px solid #bfdbfe!important; outline-offset:-3px; }
@@ -145,6 +145,11 @@
     .truncate-cell { display:block; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .title-cell { color:#172b4d; font-weight:800; }
     .requester-cell { color:#334155; white-space:normal; overflow:visible; text-overflow:clip; overflow-wrap:anywhere; }
+    .user-name { color:#172b4d; font-weight:800; }
+    .user-email { color:#334155; white-space:normal; overflow-wrap:anywhere; }
+    .user-role { display:inline-block; padding:5px 8px; border-radius:999px; background:#eef2f6; color:#475569; font-size:11px; font-weight:800; white-space:nowrap; }
+    .user-status-active { background:#dcfce7; color:#16723b; }
+    .user-status-inactive { background:#eef2f6; color:#596579; }
     .date-cell { display:inline-grid; gap:2px; max-width:100%; padding:6px 8px; border-radius:9px; font-size:12px; font-weight:800; line-height:1.2; }
     .date-cell .date-day,.date-cell .date-time { display:block; white-space:nowrap; }
     .date-created { background:#e8eef7; color:#334155; }
@@ -288,7 +293,7 @@
       </div>
     </div>
     <div class="table-wrap">
-      <table>
+      <table id="ticket-table">
         <colgroup><col style="width:9%"><col style="width:10%"><col style="width:15%"><col style="width:10%"><col style="width:7%"><col style="width:8%"><col style="width:9%"><col style="width:9%"><col style="width:13%"><col style="width:10%"></colgroup>
         <thead><tr>
           <th data-sort="ticket"><button class="sort-header" type="button" data-sort="ticket">Ticket <span class="sort-indicator"></span></button></th>
@@ -315,9 +320,36 @@
   </section>
 
   <section class="panel" id="users-panel" style="display:none">
-    <h2>Registered Users</h2>
-    <div class="toolbar"><input id="user-search" placeholder="Search name, username, or email"></div>
-    <div class="table-wrap"><table><thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Department</th><th>Status</th><th>Registered</th></tr></thead><tbody id="user-rows"></tbody></table></div>
+    <div class="ticket-queue-header">
+      <h2>Registered Users</h2>
+      <div class="queue-actions">
+        <button class="queue-icon-button" id="user-export-button" type="button" aria-label="Export users CSV">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.75h7l4 4V12"/><path d="M13 3.75v4h4"/><path d="M6 3.75a2 2 0 0 0-2 2v12.5a2 2 0 0 0 2 2h5"/><circle cx="16.5" cy="16.5" r="4"/><path d="M16.5 14.5v4M14.8 16.9l1.7 1.7 1.7-1.7"/></svg>
+        </button>
+        <div class="filter-menu" id="user-filter-menu">
+          <button class="queue-icon-button filter-button" id="user-filter-button" type="button" aria-label="Advanced user filters" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"/></svg>
+            <span class="filter-count" id="user-filter-count" aria-hidden="true"></span>
+          </button>
+          <div class="filter-popover" id="user-filter-popover" role="dialog" aria-label="Advanced user filters">
+            <div class="filter-popover-header"><strong>Advanced filters</strong></div>
+            <div class="filter-grid">
+              <div class="filter-field full"><label for="user-search">Search</label><input id="user-search" placeholder="Name, username, or email"></div>
+              <div class="filter-field"><label for="user-role-filter">Role</label><select id="user-role-filter"><option value="">All roles</option><option value="full_admin">Full Admin</option><option value="department_admin">Department Admin</option><option value="user">User</option></select></div>
+              <div class="filter-field"><label for="user-department-filter">Department</label><select id="user-department-filter"><option value="">All departments</option><option>Networking</option><option>IT Helpdesk</option><option>Software</option></select></div>
+              <div class="filter-field"><label for="user-status-filter">Status</label><select id="user-status-filter"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+              <div class="filter-field"><label for="user-page-size">Users per page</label><select id="user-page-size"><option value="10">10 users</option><option value="25">25 users</option><option value="50">50 users</option></select></div>
+            </div>
+            <div class="filter-actions"><button class="secondary-action filter-clear" id="user-filter-clear" type="button">Clear all</button><button class="primary-action filter-apply" id="user-filter-apply" type="button">Apply filters</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="table-wrap"><table id="users-table"><colgroup><col style="width:17%"><col style="width:14%"><col style="width:24%"><col style="width:14%"><col style="width:13%"><col style="width:9%"><col style="width:9%"></colgroup><thead><tr><th data-user-sort="name"><button class="sort-header user-sort-header" type="button" data-user-sort="name">Name <span class="sort-indicator"></span></button></th><th data-user-sort="username"><button class="sort-header user-sort-header" type="button" data-user-sort="username">Username <span class="sort-indicator"></span></button></th><th data-user-sort="email"><button class="sort-header user-sort-header" type="button" data-user-sort="email">Email <span class="sort-indicator"></span></button></th><th data-user-sort="role"><button class="sort-header user-sort-header" type="button" data-user-sort="role">Role <span class="sort-indicator"></span></button></th><th data-user-sort="department"><button class="sort-header user-sort-header" type="button" data-user-sort="department">Department <span class="sort-indicator"></span></button></th><th data-user-sort="status"><button class="sort-header user-sort-header" type="button" data-user-sort="status">Status <span class="sort-indicator"></span></button></th><th data-user-sort="registered"><button class="sort-header user-sort-header" type="button" data-user-sort="registered">Registered <span class="sort-indicator"></span></button></th></tr></thead><tbody id="user-rows"></tbody></table></div>
+    <div class="ticket-pagination">
+      <div class="pagination-summary" id="user-range">Showing 0 users</div>
+      <div class="pagination-controls"><button class="utility-button pagination-icon" id="user-prev" type="button" aria-label="Previous users page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><span class="pagination-page" id="user-page-label">Page 1 of 1</span><button class="utility-button pagination-icon" id="user-next" type="button" aria-label="Next users page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div>
+    </div>
   </section>
   </main>
   <div id="ticket-modal" class="ticket-modal" role="dialog" aria-modal="true" aria-labelledby="ticket-modal-title">
@@ -342,6 +374,11 @@
     let appliedFilters = { search: '', department: '', status: '', priority: '' };
     let ticketSortField = '';
     let ticketSortDirection = '';
+    let userPage = 1;
+    let userPageSize = 10;
+    let userSortField = '';
+    let userSortDirection = '';
+    let appliedUserFilters = { search: '', role: '', department: '', status: '' };
 
     function openTicketDetails(ticketId) {
       const ticket = dashboardData.tickets.find(t => t.ticket_id === ticketId);
@@ -368,7 +405,7 @@
 
     function closeTicketDetails() { document.getElementById('ticket-modal').classList.remove('open'); }
     document.getElementById('ticket-modal').addEventListener('click', event => { if (event.target.id === 'ticket-modal') closeTicketDetails(); });
-    document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeTicketDetails(); closeFilterPopover(); } });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeTicketDetails(); closeFilterPopover(); closeUserFilterPopover(); } });
 
     async function loadCurrentUser() {
       const response = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
@@ -394,10 +431,145 @@
       renderUsers();
     }
 
+    function userRoleLabel(role) {
+      return ({ full_admin: 'Full Admin', department_admin: 'Department Admin', user: 'User' })[role] || role || '—';
+    }
+
+    function filteredUsers() {
+      const filters = appliedUserFilters;
+      const users = (window.registeredUsers || []).filter(user => {
+        const searchText = `${user.full_name || ''} ${user.username || ''} ${user.email || ''}`.toLowerCase();
+        const activeStatus = user.active ? 'active' : 'inactive';
+        return (!filters.search || searchText.includes(filters.search.toLowerCase())) &&
+          (!filters.role || user.role === filters.role) &&
+          (!filters.department || user.department === filters.department) &&
+          (!filters.status || activeStatus === filters.status);
+      });
+      if (!userSortField || !userSortDirection) return users;
+      const valueFor = user => {
+        if (userSortField === 'name') return user.full_name || '';
+        if (userSortField === 'status') return user.active ? 'Active' : 'Inactive';
+        if (userSortField === 'registered') return new Date(user.created_at || 0).getTime();
+        return user[userSortField] || '';
+      };
+      return users.sort((a, b) => {
+        const left = valueFor(a), right = valueFor(b);
+        const result = typeof left === 'number' ? left - right : String(left).localeCompare(String(right), undefined, { sensitivity: 'base' });
+        return userSortDirection === 'asc' ? result : -result;
+      });
+    }
+
     function renderUsers() {
-      const query = (document.getElementById('user-search').value || '').toLowerCase();
-      const users = (window.registeredUsers || []).filter(user => `${user.full_name} ${user.username} ${user.email}`.toLowerCase().includes(query));
-      document.getElementById('user-rows').innerHTML = users.map(user => `<tr><td>${user.full_name}</td><td>${user.username}</td><td>${user.email}</td><td>${user.role}</td><td>${user.department || '—'}</td><td>${user.active ? 'Active' : 'Inactive'}</td><td>${new Date(user.created_at).toLocaleDateString()}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No matching users</td></tr>';
+      const users = filteredUsers();
+      const totalPages = Math.max(1, Math.ceil(users.length / userPageSize));
+      userPage = Math.min(userPage, totalPages);
+      const start = (userPage - 1) * userPageSize;
+      const pageUsers = users.slice(start, start + userPageSize);
+      document.getElementById('user-range').textContent = users.length ? `Showing ${start + 1}–${start + pageUsers.length} of ${users.length} users` : 'Showing 0 users';
+      document.getElementById('user-page-label').textContent = `Page ${userPage} of ${totalPages}`;
+      document.getElementById('user-prev').disabled = userPage <= 1;
+      document.getElementById('user-next').disabled = userPage >= totalPages;
+      document.getElementById('user-rows').innerHTML = pageUsers.map(user => {
+        const status = user.active ? 'Active' : 'Inactive';
+        const registered = user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { timeZone: 'Asia/Riyadh' }) : '—';
+        return `<tr><td><span class="user-name">${escapeHtml(user.full_name || '—')}</span></td><td>${escapeHtml(user.username || '—')}</td><td><span class="user-email">${escapeHtml(user.email || '—')}</span></td><td><span class="user-role">${escapeHtml(userRoleLabel(user.role))}</span></td><td>${escapeHtml(user.department || '—')}</td><td><span class="badge ${user.active ? 'user-status-active' : 'user-status-inactive'}">${status}</span></td><td><span class="date-cell date-created"><span class="date-day">${registered}</span></span></td></tr>`;
+      }).join('') || '<tr><td colspan="7" class="muted">No matching users</td></tr>';
+    }
+
+    function updateUserSortHeaders() {
+      document.querySelectorAll('#users-table th[data-user-sort]').forEach(header => {
+        const active = header.dataset.userSort === userSortField;
+        header.querySelector('.sort-indicator').textContent = active ? (userSortDirection === 'asc' ? '↑' : '↓') : '';
+        if (active) header.setAttribute('aria-sort', userSortDirection === 'asc' ? 'ascending' : 'descending');
+        else header.removeAttribute('aria-sort');
+      });
+    }
+
+    function sortUsers(field) {
+      if (userSortField !== field) { userSortField = field; userSortDirection = 'asc'; }
+      else if (userSortDirection === 'asc') userSortDirection = 'desc';
+      else { userSortField = ''; userSortDirection = ''; }
+      userPage = 1;
+      updateUserSortHeaders();
+      renderUsers();
+    }
+
+    function updateUserFilterIndicator() {
+      const count = Object.values(appliedUserFilters).filter(Boolean).length;
+      const badge = document.getElementById('user-filter-count');
+      badge.textContent = count ? String(count) : '';
+      badge.classList.toggle('visible', count > 0);
+      document.getElementById('user-filter-button').classList.toggle('active', count > 0);
+    }
+
+    function syncUserFilterControls() {
+      document.getElementById('user-search').value = appliedUserFilters.search;
+      document.getElementById('user-role-filter').value = appliedUserFilters.role;
+      document.getElementById('user-department-filter').value = appliedUserFilters.department;
+      document.getElementById('user-status-filter').value = appliedUserFilters.status;
+      document.getElementById('user-page-size').value = String(userPageSize);
+    }
+
+    function closeUserFilterPopover() {
+      document.getElementById('user-filter-popover').classList.remove('open');
+      document.getElementById('user-filter-button').setAttribute('aria-expanded', 'false');
+    }
+
+    function toggleUserFilterPopover() {
+      const popover = document.getElementById('user-filter-popover');
+      const opening = !popover.classList.contains('open');
+      if (opening) { syncUserFilterControls(); closeFilterPopover(); }
+      popover.classList.toggle('open', opening);
+      document.getElementById('user-filter-button').setAttribute('aria-expanded', String(opening));
+    }
+
+    function applyUserFilters() {
+      appliedUserFilters = {
+        search: document.getElementById('user-search').value.trim(),
+        role: document.getElementById('user-role-filter').value,
+        department: document.getElementById('user-department-filter').value,
+        status: document.getElementById('user-status-filter').value
+      };
+      userPageSize = Number(document.getElementById('user-page-size').value) || 10;
+      userPage = 1;
+      updateUserFilterIndicator();
+      closeUserFilterPopover();
+      renderUsers();
+    }
+
+    function clearUserFilters() {
+      appliedUserFilters = { search: '', role: '', department: '', status: '' };
+      userPageSize = 10;
+      userSortField = '';
+      userSortDirection = '';
+      userPage = 1;
+      syncUserFilterControls();
+      updateUserFilterIndicator();
+      updateUserSortHeaders();
+      closeUserFilterPopover();
+      renderUsers();
+    }
+
+    function csvValue(value) {
+      let text = String(value ?? '');
+      if (/^[\t\r ]*[=+\-@]/.test(text)) text = `'${text}`;
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+
+    function exportUsers() {
+      const users = filteredUsers();
+      const rows = [['Name','Username','Email','Role','Department','Status','Registered'], ...users.map(user => [
+        user.full_name, user.username, user.email, userRoleLabel(user.role), user.department || '', user.active ? 'Active' : 'Inactive',
+        user.created_at ? new Date(user.created_at).toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }) : ''
+      ])];
+      const blob = new Blob(['\uFEFF' + rows.map(row => row.map(csvValue).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = Object.values(appliedUserFilters).some(Boolean) ? 'masar-users-filtered.csv' : 'masar-users.csv';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     }
 
     function ticketSortMode() {
@@ -405,7 +577,7 @@
     }
 
     function updateSortHeaders() {
-      document.querySelectorAll('th[data-sort]').forEach(header => {
+      document.querySelectorAll('#ticket-table th[data-sort]').forEach(header => {
         const field = header.dataset.sort;
         const indicator = header.querySelector('.sort-indicator');
         const active = field === ticketSortField;
@@ -449,7 +621,7 @@
     function toggleFilterPopover() {
       const popover = document.getElementById('filter-popover');
       const opening = !popover.classList.contains('open');
-      if (opening) syncFilterControls();
+      if (opening) { syncFilterControls(); closeUserFilterPopover(); }
       popover.classList.toggle('open', opening);
       document.getElementById('filter-button').setAttribute('aria-expanded', String(opening));
     }
@@ -652,15 +824,24 @@
     document.getElementById('filter-apply').addEventListener('click', applyFilters);
     document.getElementById('filter-clear').addEventListener('click', clearFilters);
     document.getElementById('ticket-search').addEventListener('keydown', event => { if (event.key === 'Enter') applyFilters(); });
-    document.querySelectorAll('.sort-header').forEach(button => button.addEventListener('click', () => sortByColumn(button.dataset.sort)));
-    document.addEventListener('click', closeFilterPopover);
+    document.querySelectorAll('#ticket-table .sort-header').forEach(button => button.addEventListener('click', () => sortByColumn(button.dataset.sort)));
+    document.querySelectorAll('#users-table .user-sort-header').forEach(button => button.addEventListener('click', () => sortUsers(button.dataset.userSort)));
+    document.getElementById('user-filter-button').addEventListener('click', event => { event.stopPropagation(); toggleUserFilterPopover(); });
+    document.getElementById('user-filter-popover').addEventListener('click', event => event.stopPropagation());
+    document.getElementById('user-filter-apply').addEventListener('click', applyUserFilters);
+    document.getElementById('user-filter-clear').addEventListener('click', clearUserFilters);
+    document.getElementById('user-search').addEventListener('keydown', event => { if (event.key === 'Enter') applyUserFilters(); });
+    document.getElementById('user-prev').addEventListener('click', () => { if (userPage > 1) { userPage -= 1; renderUsers(); } });
+    document.getElementById('user-next').addEventListener('click', () => { const pages = Math.max(1, Math.ceil(filteredUsers().length / userPageSize)); if (userPage < pages) { userPage += 1; renderUsers(); } });
+    document.getElementById('user-export-button').addEventListener('click', exportUsers);
+    document.addEventListener('click', () => { closeFilterPopover(); closeUserFilterPopover(); });
     document.getElementById('ticket-prev').addEventListener('click', () => { if (ticketPage > 1) { ticketPage -= 1; loadDashboard(); } });
     document.getElementById('ticket-next').addEventListener('click', () => { if (ticketPage < ticketTotalPages) { ticketPage += 1; loadDashboard(); } });
     document.getElementById('export-button').addEventListener('click', exportTickets);
-    document.getElementById('user-search').addEventListener('input', renderUsers);
-
     updateFilterIndicator();
     updateSortHeaders();
+    updateUserFilterIndicator();
+    updateUserSortHeaders();
     loadCurrentUser().then(ok => ok && loadDashboard());
     setInterval(loadDashboard, 60000);
   </script>
