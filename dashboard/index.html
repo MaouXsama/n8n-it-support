@@ -99,8 +99,12 @@
     .ticket-queue-header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:12px; }
     .ticket-queue-header h2 { margin:0; }
     .export-menu { display:none; }
-    .export-button { width:auto; min-width:120px; margin:0; padding:10px 15px; white-space:nowrap; background:#e8eef7!important; color:#334155!important; box-shadow:0 5px 14px rgba(51,65,85,.12)!important; }
-    .export-button:hover { background:#dce4ef!important; color:#1e293b!important; box-shadow:0 8px 18px rgba(51,65,85,.18)!important; }
+    .export-button { position:relative; display:grid; place-items:center; width:42px!important; min-width:42px!important; height:42px; margin:0; padding:0!important; border:1px solid #d7dee8!important; border-radius:9px!important; white-space:nowrap; background:#f8fafc!important; color:#475569!important; box-shadow:0 4px 12px rgba(51,65,85,.12)!important; }
+    .export-button:hover { background:#e2e8f0!important; color:#1e293b!important; box-shadow:0 7px 16px rgba(51,65,85,.18)!important; }
+    .export-button:disabled { cursor:wait; opacity:.65; transform:none; }
+    .export-button svg { width:21px; height:21px; pointer-events:none; }
+    .export-button::after { content:attr(aria-label); position:absolute; right:0; bottom:calc(100% + 8px); z-index:60; padding:6px 9px; border-radius:6px; background:#20252b; color:#fff; font-size:12px; font-weight:700; line-height:1; opacity:0; visibility:hidden; transform:translateY(3px); transition:opacity .15s ease,transform .15s ease,visibility .15s ease; pointer-events:none; }
+    .export-button:hover::after,.export-button:focus-visible::after { opacity:1; visibility:visible; transform:translateY(0); }
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 12px; }
     th, td { padding: 14px 10px; border-bottom: 1px solid #eaecf0; text-align: left; white-space: nowrap; }
@@ -134,7 +138,7 @@
     .pagination-summary, .pagination-page { color: #64748b; font-size: 13px; font-weight: 700; }
     .muted { color: #667085; }
     @media (max-width: 900px) { .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); } .topbar { align-items: flex-start; flex-direction: column; } }
-    @media (max-width: 560px) { .dashboard { grid-template-columns: 1fr; } main { padding-inline: 14px; } .panel { padding: 18px; } .ticket-queue-header { align-items:stretch; flex-direction:column; } .export-button { width:100%; } .export-menu { width:100%; } }
+    @media (max-width: 560px) { .dashboard { grid-template-columns: 1fr; } main { padding-inline: 14px; } .panel { padding: 18px; } .ticket-queue-header { align-items:center; } }
     .details-button { background:#eef4ff; color:#175cd3; border:1px solid #cfe0ff; padding:6px 10px; border-radius:8px; font-weight:800; cursor:pointer; }
     .details-button:hover { background:#dbeafe; }
     .ticket-modal { position:fixed; inset:0; z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(15,23,42,.55); }
@@ -230,7 +234,12 @@
     <div class="ticket-queue-header">
       <h2>Ticket Queue</h2>
       <div class="export-menu" id="export-controls">
-        <button class="export-button" id="export-button" type="button" title="Exports the filtered queue, or all tickets when no filters are active">Export CSV</button>
+        <button class="export-button" id="export-button" type="button" aria-label="Export CSV" title="Exports the filtered queue, or all tickets when no filters are active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 3.75h7l4 4V12"/><path d="M13 3.75v4h4"/><path d="M6 3.75a2 2 0 0 0-2 2v12.5a2 2 0 0 0 2 2h5"/>
+            <circle cx="16.5" cy="16.5" r="4"/><path d="M16.5 14.5v4M14.8 16.9l1.7 1.7 1.7-1.7"/>
+          </svg>
+        </button>
       </div>
     </div>
     <div class="toolbar">
@@ -430,9 +439,9 @@
         Object.entries(filters).forEach(([key, value]) => { if (value) params.set(key, value); });
       }
       const button = document.getElementById('export-button');
-      const originalText = button.textContent;
+      const originalLabel = button.getAttribute('aria-label');
       button.disabled = true;
-      button.textContent = 'Exporting…';
+      button.setAttribute('aria-label', 'Exporting CSV…');
       try {
         const response = await fetch(`/api/tickets/export?${params}`, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
         if (!response.ok) {
@@ -453,7 +462,7 @@
         alert(error.message);
       } finally {
         button.disabled = false;
-        button.textContent = originalText;
+        button.setAttribute('aria-label', originalLabel);
       }
     }
 
