@@ -183,7 +183,7 @@
 <body>
   <header class="topbar">
     <div class="masar-brand"><img class="masar-logo" src="/dashboard-assets/masar-logo.png" alt="Masar logo"><div class="masar-brand-copy"><h1 id="page-title">IT Ticket Dashboard</h1><p id="page-subtitle">Centralized ticket intake, SLA monitoring, and team operations</p></div></div>
-    <div><div class="status">● System operational</div><button onclick="sessionStorage.removeItem('token');location.href='/login'" style="width:auto;margin-top:10px;padding:8px 12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3)">Sign out</button></div>
+    <div class="header-actions"><div class="status">● System operational</div><button class="utility-button header-action" type="button" onclick="sessionStorage.removeItem('token');location.href='/login'" aria-label="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4"/><path d="m15 8 4 4-4 4"/><path d="M19 12H9"/></svg></button></div>
   </header>
   <main>
 
@@ -283,7 +283,7 @@
               <div class="filter-field"><label for="priority-filter">Priority</label><select id="priority-filter"><option value="">All priorities</option><option>Critical</option><option>High</option><option>Normal</option><option>Low</option></select></div>
               <div class="filter-field"><label for="ticket-page-size">Tickets per page</label><select id="ticket-page-size"><option value="10">10 tickets</option><option value="25">25 tickets</option><option value="50">50 tickets</option></select></div>
             </div>
-            <div class="filter-actions"><button class="filter-clear" id="filter-clear" type="button">Clear all</button><button class="filter-apply" id="filter-apply" type="button">Apply filters</button></div>
+            <div class="filter-actions"><button class="secondary-action filter-clear" id="filter-clear" type="button">Clear all</button><button class="primary-action filter-apply" id="filter-apply" type="button">Apply filters</button></div>
           </div>
         </div>
       </div>
@@ -308,9 +308,9 @@
     <div class="ticket-pagination">
       <div class="pagination-summary" id="ticket-range">Showing 0 tickets</div>
       <div class="pagination-controls">
-        <button class="small-button" id="ticket-prev" type="button">Previous</button>
+        <button class="utility-button pagination-icon" id="ticket-prev" type="button" aria-label="Previous page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
         <span class="pagination-page" id="ticket-page-label">Page 1 of 1</span>
-        <button class="small-button" id="ticket-next" type="button">Next</button>
+        <button class="utility-button pagination-icon" id="ticket-next" type="button" aria-label="Next page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
       </div>
     </div>
   </section>
@@ -323,7 +323,7 @@
   </main>
   <div id="ticket-modal" class="ticket-modal" role="dialog" aria-modal="true" aria-labelledby="ticket-modal-title">
     <div class="ticket-modal-card">
-      <div class="ticket-modal-header"><div><h2 id="ticket-modal-title">Ticket details</h2><p id="ticket-modal-subtitle" class="muted"></p></div><button class="ticket-modal-close" onclick="closeTicketDetails()" aria-label="Close">Close</button></div>
+      <div class="ticket-modal-header"><div><h2 id="ticket-modal-title">Ticket details</h2><p id="ticket-modal-subtitle" class="muted"></p></div><button class="utility-button modal-close-button" type="button" onclick="closeTicketDetails()" aria-label="Close ticket details"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
       <div id="ticket-modal-grid" class="ticket-modal-grid"></div>
       <div class="ticket-modal-description"><b>Description</b><div id="ticket-modal-description"></div></div>
     </div>
