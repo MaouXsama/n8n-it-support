@@ -10,7 +10,7 @@ const pool = new Pool({
   database: process.env.POSTGRES_DB,
   user: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
-  ssl: { rejectUnauthorized: false }
+  ssl: process.env.POSTGRES_SSL === 'false' ? false : { rejectUnauthorized: false }
 });
 const secret = process.env.AUTH_JWT_SECRET || crypto.randomBytes(32).toString('hex');
 
@@ -172,6 +172,40 @@ async function handler(req,res) {
         const filename=`masar-tickets-${stamp}.csv`;
         res.writeHead(200,{'Content-Type':'text/csv; charset=utf-8','Content-Disposition':`attachment; filename="${filename}"`,'Cache-Control':'no-store','Access-Control-Allow-Origin':'*'});
         return res.end(`\uFEFF${headers.map(csvCell).join(',')}\r\n${rows.join('\r\n')}`);
+      }
+      if (url.pathname === '/tickets/sla-trend') {
+        if(!['full_admin','department_admin'].includes(session.role)) return send(res,403,{message:'Admin access required'});
+        const allowedDepartments=['Networking','IT Helpdesk','Software'];
+        const requestedDays=parseInt(url.searchParams.get('days'),10);
+        const days=[7,14,30].includes(requestedDays)?requestedDays:7;
+        const requestedDepartment=url.searchParams.get('department')||'';
+        const department=session.role==='department_admin'
+          ? session.department
+          : (allowedDepartments.includes(requestedDepartment)?requestedDepartment:'');
+        const values=[days];
+        let departmentSql='';
+        if(department){ values.push(department); departmentSql=` AND department=$${values.length}`; }
+        const trend=await pool.query(`WITH dates AS (
+          SELECT generate_series(
+            (NOW() AT TIME ZONE 'Asia/Riyadh')::date-($1::int-1),
+            (NOW() AT TIME ZONE 'Asia/Riyadh')::date,
+            INTERVAL '1 day'
+          )::date AS day
+        ), daily AS (
+          SELECT (completed_at AT TIME ZONE 'Asia/Riyadh')::date AS day,
+            COUNT(*) FILTER (WHERE completed_at<=due_at)::int AS within_sla,
+            COUNT(*) FILTER (WHERE completed_at>due_at)::int AS after_sla
+          FROM public.tickets
+          WHERE archived=FALSE AND status='Completed' AND completed_at IS NOT NULL
+            AND (completed_at AT TIME ZONE 'Asia/Riyadh')::date >= (NOW() AT TIME ZONE 'Asia/Riyadh')::date-($1::int-1)
+            ${departmentSql}
+          GROUP BY 1
+        )
+        SELECT to_char(d.day,'YYYY-MM-DD') AS date,
+          COALESCE(daily.within_sla,0)::int AS within_sla,
+          COALESCE(daily.after_sla,0)::int AS after_sla
+        FROM dates d LEFT JOIN daily USING(day) ORDER BY d.day`,values);
+        return send(res,200,{scope:department||'All departments',days,trend:trend.rows});
       }
       if (url.pathname === '/tickets/metrics') {
         const scoped=ticketWhere(session);

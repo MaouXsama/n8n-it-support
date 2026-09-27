@@ -25,7 +25,7 @@
     }
     .metrics-dashboard { display:grid; gap:18px; margin-bottom:26px; }
     .metrics-primary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
-    .metric-card { position:relative; min-height:148px; overflow:hidden; }
+    .metric-card { position:relative; min-height:148px; overflow:visible; }
     .metric-card::after { content:""; position:absolute; inset:0 auto 0 0; width:4px; background:var(--metric-accent,#64748b); }
     .metric-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
     .metric-icon { display:grid; place-items:center; width:40px; height:40px; flex:none; border-radius:11px; background:var(--metric-soft,#eef2f6); color:var(--metric-accent,#475569); }
@@ -42,7 +42,7 @@
     .metric-section-header { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:16px; }
     .metric-section-header p { margin:3px 0 0; color:#64748b; font-size:13px; }
     .workload-grid { display:grid; gap:10px; }
-    .workload-row { display:grid; grid-template-columns:minmax(150px,1.2fr) 90px 110px minmax(160px,2fr) 70px; align-items:center; gap:18px; min-height:58px; padding:10px 12px; border:1px solid #e6ebf2; border-radius:12px; background:#fbfdff; }
+    .workload-row { display:grid; grid-template-columns:minmax(150px,1.2fr) 90px 110px minmax(160px,2fr) 70px 42px; align-items:center; gap:14px; min-height:58px; padding:10px 12px; border:1px solid #e6ebf2; border-radius:12px; background:#fbfdff; }
     .workload-name { font-weight:850; color:#172b4d; }
     .workload-stat { display:grid; gap:1px; color:#334155; font-size:18px; font-weight:850; }
     .workload-stat small { color:#64748b; font-size:10px; font-weight:800; text-transform:uppercase; }
@@ -54,8 +54,32 @@
     .performance-card .value { margin-top:8px; font-size:29px; }
     .performance-good .value { color:#16803f; }
     .performance-bad .value { color:#c93227; }
-    @media(max-width:1050px){.metrics-primary{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics-performance{grid-template-columns:repeat(3,minmax(0,1fr))}.workload-row{grid-template-columns:minmax(140px,1fr) 80px 100px minmax(120px,1.4fr) 60px}}
-    @media(max-width:680px){.metrics-primary,.metrics-performance{grid-template-columns:1fr}.workload-row{grid-template-columns:1fr 1fr 1fr}.workload-track{grid-column:1 / -2}.workload-total{grid-column:-2}.metric-section-header{align-items:flex-start;flex-direction:column}}
+    .metric-chart-button { width:40px!important; min-width:40px!important; height:40px; }
+    .department-chart-button { width:38px!important; min-width:38px!important; height:38px; }
+    .sla-modal { position:fixed; inset:0; z-index:1100; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(15,23,42,.58); }
+    .sla-modal.open { display:flex; }
+    .sla-modal-card { width:min(940px,100%); max-height:92vh; overflow:auto; padding:26px; border:1px solid #dce3ec; border-radius:18px; background:#fff; box-shadow:0 28px 80px rgba(15,23,42,.32); }
+    .sla-modal-header { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
+    .sla-modal-header h2 { margin:0; }
+    .sla-modal-header p { margin:5px 0 0; color:#64748b; font-size:13px; }
+    .sla-chart-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin:20px 0 12px; }
+    .sla-periods { display:flex; gap:6px; padding:4px; border:1px solid #dce3ec; border-radius:10px; background:#f8fafc; }
+    .sla-period-button { width:auto; min-width:52px; margin:0; padding:7px 10px; border:0; border-radius:7px; background:transparent; color:#475569; box-shadow:none; }
+    .sla-period-button:hover { background:#e8edf3; color:#172b4d; transform:none; }
+    .sla-period-button.active { background:#334155; color:#fff; }
+    .sla-chart-legend { display:flex; align-items:center; gap:16px; color:#475569; font-size:12px; font-weight:750; }
+    .sla-chart-legend span { display:flex; align-items:center; gap:6px; }
+    .sla-chart-legend i { width:10px; height:10px; border-radius:3px; }
+    .sla-chart-summary { margin:0 0 14px; color:#475569; font-size:13px; font-weight:700; }
+    .sla-chart-stage { min-height:350px; padding:14px 8px 4px; border:1px solid #e2e8f0; border-radius:14px; background:#fbfdff; }
+    .sla-chart-stage svg { display:block; width:100%; height:auto; min-height:320px; }
+    .sla-chart-empty { display:grid; min-height:320px; place-items:center; color:#64748b; font-weight:700; }
+    .sla-chart-grid { stroke:#e2e8f0; stroke-width:1; }
+    .sla-chart-axis-label { fill:#64748b; font-size:11px; font-weight:650; }
+    .sla-chart-bar { transition:opacity .15s ease; }
+    .sla-chart-bar:hover { opacity:.82; }
+    @media(max-width:1050px){.metrics-primary{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics-performance{grid-template-columns:repeat(3,minmax(0,1fr))}.workload-row{grid-template-columns:minmax(140px,1fr) 80px 100px minmax(120px,1.4fr) 60px 42px}}
+    @media(max-width:680px){.metrics-primary,.metrics-performance{grid-template-columns:1fr}.workload-row{grid-template-columns:1fr 1fr 1fr auto}.workload-track{grid-column:1 / -2}.workload-total{grid-column:-3}.department-chart-button{grid-column:-2}.metric-section-header{align-items:flex-start;flex-direction:column}.sla-modal-card{padding:18px}.sla-chart-stage{overflow-x:auto}.sla-chart-stage svg{min-width:700px}.sla-chart-toolbar{align-items:flex-start;flex-direction:column}}
 
     .card {
       background: white;
@@ -234,13 +258,13 @@
       <article class="card metric-card metric-open"><div class="metric-card-header"><div><div class="label">Open Tickets</div><div class="metric-note">Currently awaiting action</div></div><span class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16v12H4zM8 7V5h8v2"/><path d="M4 12h5l1.5 2h3L15 12h5"/></svg></span></div><div class="value" id="total_open">-</div></article>
       <article class="card metric-card metric-progress"><div class="metric-card-header"><div><div class="label">In Progress</div><div class="metric-note">Being handled now</div></div><span class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></span></div><div class="value" id="total_in_progress">-</div></article>
       <article class="card metric-card metric-overdue"><div class="metric-card-header"><div><div class="label">Overdue</div><div class="metric-note">Past the SLA deadline</div></div><span class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.8 19h18.4L12 3Z"/><path d="M12 9v4M12 17h.01"/></svg></span></div><div class="value overdue" id="overdue_open">-</div></article>
-      <article class="card metric-card metric-sla"><div class="metric-card-header"><div><div class="label">SLA Compliance</div><div class="metric-note">Completed within target</div></div><span class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span></div><div class="value" id="sla_compliance_percentage">-</div><div class="sla-track"><div class="sla-bar" id="sla-progress-bar"></div></div></article>
+      <article class="card metric-card metric-sla"><div class="metric-card-header"><div><div class="label">SLA Compliance</div><div class="metric-note">Completed within target</div></div><button class="queue-icon-button metric-chart-button" id="overall-sla-chart-button" type="button" data-sla-scope="" aria-label="View overall SLA trend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5M4 19h16"/><path d="M8 16v-5M12 16V8M16 16v-3M20 16V6"/></svg></button></div><div class="value" id="sla_compliance_percentage">-</div><div class="sla-track"><div class="sla-bar" id="sla-progress-bar"></div></div></article>
     </div>
 
     <section class="card department-workload"><div class="metric-section-header"><div><h2>Department workload</h2><p>Open and in-progress tickets across operational teams.</p></div></div><div class="workload-grid">
-      <div class="workload-row department-card" data-department="Networking"><div class="workload-name">Networking</div><div class="workload-stat"><span id="networking_open">-</span><small>Open</small></div><div class="workload-stat"><span id="networking_in_progress">-</span><small>In progress</small></div><div class="workload-track"><div class="workload-bar" id="networking-workload-bar"></div></div><div class="workload-total" id="networking-total-active">-</div></div>
-      <div class="workload-row department-card" data-department="IT Helpdesk"><div class="workload-name">IT Helpdesk</div><div class="workload-stat"><span id="helpdesk_open">-</span><small>Open</small></div><div class="workload-stat"><span id="helpdesk_in_progress">-</span><small>In progress</small></div><div class="workload-track"><div class="workload-bar" id="helpdesk-workload-bar"></div></div><div class="workload-total" id="helpdesk-total-active">-</div></div>
-      <div class="workload-row department-card" data-department="Software"><div class="workload-name">Software</div><div class="workload-stat"><span id="software_open">-</span><small>Open</small></div><div class="workload-stat"><span id="software_in_progress">-</span><small>In progress</small></div><div class="workload-track"><div class="workload-bar" id="software-workload-bar"></div></div><div class="workload-total" id="software-total-active">-</div></div>
+      <div class="workload-row department-card" data-department="Networking"><div class="workload-name">Networking</div><div class="workload-stat"><span id="networking_open">-</span><small>Open</small></div><div class="workload-stat"><span id="networking_in_progress">-</span><small>In progress</small></div><div class="workload-track"><div class="workload-bar" id="networking-workload-bar"></div></div><div class="workload-total" id="networking-total-active">-</div><button class="queue-icon-button department-chart-button" type="button" data-sla-scope="Networking" aria-label="View Networking SLA trend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5M4 19h16"/><path d="M8 16v-5M12 16V8M16 16v-3M20 16V6"/></svg></button></div>
+      <div class="workload-row department-card" data-department="IT Helpdesk"><div class="workload-name">IT Helpdesk</div><div class="workload-stat"><span id="helpdesk_open">-</span><small>Open</small></div><div class="workload-stat"><span id="helpdesk_in_progress">-</span><small>In progress</small></div><div class="workload-track"><div class="workload-bar" id="helpdesk-workload-bar"></div></div><div class="workload-total" id="helpdesk-total-active">-</div><button class="queue-icon-button department-chart-button" type="button" data-sla-scope="IT Helpdesk" aria-label="View IT Helpdesk SLA trend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5M4 19h16"/><path d="M8 16v-5M12 16V8M16 16v-3M20 16V6"/></svg></button></div>
+      <div class="workload-row department-card" data-department="Software"><div class="workload-name">Software</div><div class="workload-stat"><span id="software_open">-</span><small>Open</small></div><div class="workload-stat"><span id="software_in_progress">-</span><small>In progress</small></div><div class="workload-track"><div class="workload-bar" id="software-workload-bar"></div></div><div class="workload-total" id="software-total-active">-</div><button class="queue-icon-button department-chart-button" type="button" data-sla-scope="Software" aria-label="View Software SLA trend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5M4 19h16"/><path d="M8 16v-5M12 16V8M16 16v-3M20 16V6"/></svg></button></div>
     </div></section>
 
     <div class="metrics-performance">
@@ -352,6 +376,20 @@
       <div class="ticket-modal-description"><b>Description</b><div id="ticket-modal-description"></div></div>
     </div>
   </div>
+  <div id="sla-modal" class="sla-modal" role="dialog" aria-modal="true" aria-labelledby="sla-modal-title">
+    <div class="sla-modal-card">
+      <div class="sla-modal-header">
+        <div><h2 id="sla-modal-title">SLA performance trend</h2><p id="sla-modal-subtitle">All departments · Last 7 days · Saudi Arabia time</p></div>
+        <button class="utility-button modal-close-button" id="sla-modal-close" type="button" aria-label="Close SLA chart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+      <div class="sla-chart-toolbar">
+        <div class="sla-periods" aria-label="Chart period"><button class="sla-period-button active" type="button" data-days="7">7 days</button><button class="sla-period-button" type="button" data-days="14">14 days</button><button class="sla-period-button" type="button" data-days="30">30 days</button></div>
+        <div class="sla-chart-legend"><span><i style="background:#22a052"></i>Within SLA</span><span><i style="background:#c93227"></i>After SLA</span></div>
+      </div>
+      <p class="sla-chart-summary" id="sla-chart-summary">Loading performance data…</p>
+      <div class="sla-chart-stage" id="sla-chart-stage"><div class="sla-chart-empty">Loading chart…</div></div>
+    </div>
+  </div>
 
   <script>
     if (!sessionStorage.getItem('token')) location.href = '/login';
@@ -372,6 +410,9 @@
     let userSortField = '';
     let userSortDirection = '';
     let appliedUserFilters = { search: '', role: '', department: '', status: '' };
+    let slaChartScope = '';
+    let slaChartDays = 7;
+    let slaChartRequestId = 0;
 
     function openTicketDetails(ticketId) {
       const ticket = dashboardData.tickets.find(t => t.ticket_id === ticketId);
@@ -398,7 +439,94 @@
 
     function closeTicketDetails() { document.getElementById('ticket-modal').classList.remove('open'); }
     document.getElementById('ticket-modal').addEventListener('click', event => { if (event.target.id === 'ticket-modal') closeTicketDetails(); });
-    document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeTicketDetails(); closeFilterPopover(); closeUserFilterPopover(); } });
+
+    function closeSlaChart() { document.getElementById('sla-modal').classList.remove('open'); }
+
+    function openSlaChart(scope = '') {
+      slaChartScope = currentUser?.role === 'department_admin' ? currentUser.department : scope;
+      slaChartDays = 7;
+      document.querySelectorAll('.sla-period-button').forEach(button => button.classList.toggle('active', Number(button.dataset.days) === slaChartDays));
+      document.getElementById('sla-modal-title').textContent = `${slaChartScope || 'Overall'} SLA performance`;
+      document.getElementById('sla-modal').classList.add('open');
+      loadSlaChart();
+    }
+
+    async function loadSlaChart() {
+      const requestId = ++slaChartRequestId;
+      const params = new URLSearchParams({ days: String(slaChartDays) });
+      if (slaChartScope) params.set('department', slaChartScope);
+      const stage = document.getElementById('sla-chart-stage');
+      stage.innerHTML = '<div class="sla-chart-empty">Loading chart…</div>';
+      document.getElementById('sla-chart-summary').textContent = 'Loading performance data…';
+      try {
+        const response = await fetch(`/api/tickets/sla-trend?${params}`, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
+        if (!response.ok) throw new Error('SLA trend could not be loaded');
+        const data = await response.json();
+        if (requestId !== slaChartRequestId) return;
+        document.getElementById('sla-modal-title').textContent = `${data.scope === 'All departments' ? 'Overall' : data.scope} SLA performance`;
+        document.getElementById('sla-modal-subtitle').textContent = `${data.scope} · Last ${data.days} days · Saudi Arabia time`;
+        renderSlaChart(data.trend || []);
+      } catch (error) {
+        if (requestId !== slaChartRequestId) return;
+        stage.innerHTML = `<div class="sla-chart-empty">${escapeHtml(error.message)}. Please try again.</div>`;
+        document.getElementById('sla-chart-summary').textContent = 'Performance data is unavailable.';
+      }
+    }
+
+    function renderSlaChart(points) {
+      const withinTotal = points.reduce((sum, point) => sum + Number(point.within_sla || 0), 0);
+      const afterTotal = points.reduce((sum, point) => sum + Number(point.after_sla || 0), 0);
+      const total = withinTotal + afterTotal;
+      const compliance = total ? Math.round(withinTotal / total * 1000) / 10 : 0;
+      document.getElementById('sla-chart-summary').textContent = `${total} completed · ${withinTotal} within SLA · ${afterTotal} after SLA · ${compliance}% compliance`;
+      if (!points.length) {
+        document.getElementById('sla-chart-stage').innerHTML = '<div class="sla-chart-empty">No performance data for this period.</div>';
+        return;
+      }
+      const width = 900, height = 340, left = 48, right = 18, top = 20, bottom = 58;
+      const plotWidth = width - left - right, plotHeight = height - top - bottom;
+      const peak = Math.max(1, ...points.map(point => Number(point.within_sla || 0) + Number(point.after_sla || 0)));
+      const yMax = peak <= 5 ? 5 : Math.ceil(peak / 5) * 5;
+      const slot = plotWidth / points.length;
+      const barWidth = Math.max(8, Math.min(36, slot * .58));
+      let svg = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Stacked SLA completion chart">`;
+      for (let step = 0; step <= 5; step += 1) {
+        const value = Math.round(yMax * step / 5);
+        const y = top + plotHeight - plotHeight * step / 5;
+        svg += `<line class="sla-chart-grid" x1="${left}" y1="${y}" x2="${width-right}" y2="${y}"/><text class="sla-chart-axis-label" x="${left-10}" y="${y+4}" text-anchor="end">${value}</text>`;
+      }
+      points.forEach((point, index) => {
+        const within = Number(point.within_sla || 0), after = Number(point.after_sla || 0), dayTotal = within + after;
+        const x = left + slot * index + (slot - barWidth) / 2;
+        const withinHeight = within / yMax * plotHeight;
+        const afterHeight = after / yMax * plotHeight;
+        const withinY = top + plotHeight - withinHeight;
+        const afterY = withinY - afterHeight;
+        const date = new Date(`${point.date}T00:00:00+03:00`);
+        const shortDate = date.toLocaleDateString('en-US', { timeZone: 'Asia/Riyadh', month: 'short', day: 'numeric' });
+        const fullDate = date.toLocaleDateString('en-US', { timeZone: 'Asia/Riyadh', year: 'numeric', month: 'long', day: 'numeric' });
+        const dailyCompliance = dayTotal ? Math.round(within / dayTotal * 1000) / 10 : 0;
+        svg += `<g class="sla-chart-bar"><title>${escapeHtml(fullDate)} — ${dayTotal} completed, ${within} within SLA, ${after} after SLA, ${dailyCompliance}% compliance</title>`;
+        if (withinHeight > 0) svg += `<rect x="${x}" y="${withinY}" width="${barWidth}" height="${withinHeight}" rx="4" fill="#22a052"/>`;
+        if (afterHeight > 0) svg += `<rect x="${x}" y="${afterY}" width="${barWidth}" height="${afterHeight}" rx="4" fill="#c93227"/>`;
+        if (!dayTotal) svg += `<rect x="${x}" y="${top+plotHeight-2}" width="${barWidth}" height="2" rx="1" fill="#cbd5e1"/>`;
+        const labelEvery = points.length > 20 ? 5 : points.length > 10 ? 2 : 1;
+        if (index % labelEvery === 0 || index === points.length - 1) svg += `<text class="sla-chart-axis-label" x="${x+barWidth/2}" y="${height-29}" text-anchor="middle">${escapeHtml(shortDate)}</text>`;
+        svg += '</g>';
+      });
+      svg += '</svg>';
+      document.getElementById('sla-chart-stage').innerHTML = svg;
+    }
+
+    document.getElementById('sla-modal-close').addEventListener('click', closeSlaChart);
+    document.getElementById('sla-modal').addEventListener('click', event => { if (event.target.id === 'sla-modal') closeSlaChart(); });
+    document.querySelectorAll('[data-sla-scope]').forEach(button => button.addEventListener('click', () => openSlaChart(button.dataset.slaScope || '')));
+    document.querySelectorAll('.sla-period-button').forEach(button => button.addEventListener('click', () => {
+      slaChartDays = Number(button.dataset.days);
+      document.querySelectorAll('.sla-period-button').forEach(item => item.classList.toggle('active', item === button));
+      loadSlaChart();
+    }));
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeTicketDetails(); closeSlaChart(); closeFilterPopover(); closeUserFilterPopover(); } });
 
     async function loadCurrentUser() {
       const response = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
@@ -408,7 +536,10 @@
       document.title = currentUser.role === 'full_admin' ? 'Masar | Admin Dashboard' : `Masar | ${currentUser.department}`;
       document.getElementById('page-title').textContent = title;
       document.getElementById('page-subtitle').textContent = `Welcome, ${currentUser.full_name} · ${currentUser.role === 'full_admin' ? 'All departments' : currentUser.department + ' tickets only'}`;
-      if (currentUser.role === 'department_admin') document.querySelectorAll('.department-card').forEach(card => { if (card.dataset.department !== currentUser.department) card.style.display = 'none'; });
+      if (currentUser.role === 'department_admin') {
+        document.getElementById('overall-sla-chart-button').style.display = 'none';
+        document.querySelectorAll('.department-card').forEach(card => { if (card.dataset.department !== currentUser.department) card.style.display = 'none'; });
+      }
       if (currentUser.role === 'full_admin') {
         document.getElementById('export-controls').style.display = 'block';
         loadUsers();
