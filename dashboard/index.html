@@ -152,6 +152,7 @@
     .date-completed { background:#dcfce7; color:#16723b; }
     .date-late { background:#fee2e2; color:#991b1b; }
     .outcome-cell { display:grid; gap:5px; justify-items:start; }
+    .outcome-cancelled { display:inline-block; padding:6px 8px; border-radius:9px; background:#eef2f6; color:#b42318; font-size:12px; font-weight:900; }
     .priority-critical-row td:first-child { border-left: 4px solid #dc2626; }
     .priority-high-row td:first-child { border-left: 4px solid #f97316; }
     .ticket-pagination { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding-top: 16px; }
@@ -573,7 +574,7 @@
         return `<div class="outcome-cell">${renderDate(ticket.completed_at, completedClass)}</div>`;
       }
       if (ticket.status === 'Cancelled') {
-        return `<div class="outcome-cell">${renderDate(ticket.due_at, 'date-due')}</div>`;
+        return '<div class="outcome-cell"><span class="outcome-cancelled">Cancelled</span></div>';
       }
       return `<div class="outcome-cell">${renderDate(ticket.due_at, 'date-due')}</div>`;
     }
