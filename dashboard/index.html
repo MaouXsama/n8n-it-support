@@ -160,8 +160,9 @@
     .muted { color: #667085; }
     @media (max-width: 900px) { .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); } .topbar { align-items: flex-start; flex-direction: column; } }
     @media (max-width: 560px) { .dashboard { grid-template-columns: 1fr; } main { padding-inline: 14px; } .panel { padding: 18px; } .ticket-queue-header { align-items:center; } .filter-grid { grid-template-columns:1fr; } .filter-field.full { grid-column:auto; } }
-    .details-button { background:#eef4ff; color:#175cd3; border:1px solid #cfe0ff; padding:6px 10px; border-radius:8px; font-weight:800; cursor:pointer; }
-    .details-button:hover { background:#dbeafe; }
+    .ticket-id-button { display:inline-flex; align-items:center; width:auto; min-width:0; margin:0; padding:4px 6px!important; border:0!important; border-radius:7px!important; background:transparent!important; color:#1d4ed8!important; box-shadow:none!important; font-weight:800; text-decoration:underline; text-decoration-color:#bfdbfe; text-underline-offset:3px; }
+    .ticket-id-button:hover { background:#eff6ff!important; color:#1e40af!important; box-shadow:none!important; text-decoration-color:#2563eb; transform:none; }
+    .ticket-id-button:focus-visible { outline:3px solid #bfdbfe!important; outline-offset:2px; }
     .ticket-modal { position:fixed; inset:0; z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(15,23,42,.55); }
     .ticket-modal.open { display:flex; }
     .ticket-modal-card { width:min(560px,100%); max-height:90vh; overflow:auto; background:#fff; border-radius:18px; padding:26px; box-shadow:0 24px 70px rgba(15,23,42,.3); }
@@ -585,7 +586,7 @@
         const updateControl = `<div class="action-stack">${statusControl}</div>`;
         const statusBadge = String(ticket.status || 'Open').toLowerCase().replace(/\s+/g, '-');
         const activePriorityClass = ['Open', 'In Progress'].includes(ticket.status) && ticket.priority === 'Critical' ? 'priority-critical-row' : ['Open', 'In Progress'].includes(ticket.status) && ticket.priority === 'High' ? 'priority-high-row' : '';
-        return `<tr class="${overdue ? 'overdue-row' : ''} ${activePriorityClass}"><td>${ticket.ticket_id}</td><td><strong>${ticket.title}</strong><br><button class="details-button" onclick="openTicketDetails('${ticket.ticket_id}')">View details</button></td><td>${ticket.requester || 'Not provided'}</td><td>${ticket.department}</td><td><span class="badge ${badge}">${ticket.priority || 'Normal'}</span></td><td><span class="badge ${statusBadge}">${ticket.status}</span></td><td>${renderTimeline(ticket)}</td><td>${moveControl}</td><td>${updateControl}</td></tr>`;
+        return `<tr class="${overdue ? 'overdue-row' : ''} ${activePriorityClass}"><td><button class="ticket-id-button" onclick="openTicketDetails('${ticket.ticket_id}')" aria-label="View details for ticket ${ticket.ticket_id}">${ticket.ticket_id}</button></td><td><strong>${ticket.title}</strong></td><td>${ticket.requester || 'Not provided'}</td><td>${ticket.department}</td><td><span class="badge ${badge}">${ticket.priority || 'Normal'}</span></td><td><span class="badge ${statusBadge}">${ticket.status}</span></td><td>${renderTimeline(ticket)}</td><td>${moveControl}</td><td>${updateControl}</td></tr>`;
       }).join('');
     }
 
