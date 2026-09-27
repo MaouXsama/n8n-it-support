@@ -152,8 +152,6 @@
     .date-completed { background:#dcfce7; color:#16723b; }
     .date-late { background:#fee2e2; color:#991b1b; }
     .outcome-cell { display:grid; gap:5px; justify-items:start; }
-    .outcome-label { color:#64748b; font-size:10px; font-weight:900; letter-spacing:.03em; text-transform:uppercase; }
-    .outcome-cancelled { display:inline-block; padding:6px 8px; border-radius:9px; background:#eef2f6; color:#b42318; font-size:12px; font-weight:900; }
     .priority-critical-row td:first-child { border-left: 4px solid #dc2626; }
     .priority-high-row td:first-child { border-left: 4px solid #f97316; }
     .ticket-pagination { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding-top: 16px; }
@@ -299,7 +297,7 @@
           <th data-sort="priority"><button class="sort-header" type="button" data-sort="priority">Priority <span class="sort-indicator"></span></button></th>
           <th data-sort="status"><button class="sort-header" type="button" data-sort="status">Status <span class="sort-indicator"></span></button></th>
           <th data-sort="created"><button class="sort-header" type="button" data-sort="created">Created At <span class="sort-indicator"></span></button></th>
-          <th data-sort="timeline"><button class="sort-header" type="button" data-sort="timeline">Due / Outcome <span class="sort-indicator"></span></button></th>
+          <th data-sort="timeline"><button class="sort-header" type="button" data-sort="timeline">Due Date <span class="sort-indicator"></span></button></th>
           <th>Change Department</th><th>Update Status</th>
         </tr></thead>
         <tbody id="ticket-rows"><tr><td colspan="10" class="muted">Loading tickets...</td></tr></tbody>
@@ -572,12 +570,12 @@
       if (ticket.status === 'Completed') {
         const completedAfterSla = ticket.completed_at && ticket.due_at && new Date(ticket.completed_at) > new Date(ticket.due_at);
         const completedClass = completedAfterSla ? 'date-late' : 'date-completed';
-        return `<div class="outcome-cell"><span class="outcome-label">Completed</span>${renderDate(ticket.completed_at, completedClass)}</div>`;
+        return `<div class="outcome-cell">${renderDate(ticket.completed_at, completedClass)}</div>`;
       }
       if (ticket.status === 'Cancelled') {
-        return '<div class="outcome-cell"><span class="outcome-label">Status</span><span class="outcome-cancelled">Cancelled</span></div>';
+        return `<div class="outcome-cell">${renderDate(ticket.due_at, 'date-due')}</div>`;
       }
-      return `<div class="outcome-cell"><span class="outcome-label">Due</span>${renderDate(ticket.due_at, 'date-due')}</div>`;
+      return `<div class="outcome-cell">${renderDate(ticket.due_at, 'date-due')}</div>`;
     }
 
     function renderTickets() {
