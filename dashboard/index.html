@@ -98,13 +98,9 @@
     .toolbar input, .toolbar select { flex: 1; min-width: 180px; margin-top: 0; }
     .ticket-queue-header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:12px; }
     .ticket-queue-header h2 { margin:0; }
-    .export-menu { display:none; position:relative; }
-    .export-button { width:auto; min-width:132px; margin:0; padding:10px 15px; white-space:nowrap; background:#217346; box-shadow:0 6px 16px rgba(33,115,70,.2); }
-    .export-button:hover { background:#185c37; }
-    .export-options { display:none; position:absolute; top:calc(100% + 8px); right:0; z-index:50; width:230px; padding:6px; background:#fff; border:1px solid #d0d5dd; border-radius:10px; box-shadow:0 14px 34px rgba(15,23,42,.16); }
-    .export-options.open { display:block; }
-    .export-option { width:100%; margin:0; padding:10px 12px; border:0; border-radius:7px; background:#fff; color:#172b4d; text-align:left; font-weight:700; box-shadow:none; }
-    .export-option:hover { background:#ecfdf3; color:#185c37; transform:none; }
+    .export-menu { display:none; }
+    .export-button { width:auto; min-width:120px; margin:0; padding:10px 15px; white-space:nowrap; background:#217346!important; box-shadow:0 6px 16px rgba(33,115,70,.2)!important; }
+    .export-button:hover { background:#185c37!important; box-shadow:0 9px 20px rgba(33,115,70,.28)!important; }
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 12px; }
     th, td { padding: 14px 10px; border-bottom: 1px solid #eaecf0; text-align: left; white-space: nowrap; }
@@ -138,7 +134,7 @@
     .pagination-summary, .pagination-page { color: #64748b; font-size: 13px; font-weight: 700; }
     .muted { color: #667085; }
     @media (max-width: 900px) { .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); } .topbar { align-items: flex-start; flex-direction: column; } }
-    @media (max-width: 560px) { .dashboard { grid-template-columns: 1fr; } main { padding-inline: 14px; } .panel { padding: 18px; } .ticket-queue-header { align-items:stretch; flex-direction:column; } .export-button { width:100%; } .export-menu { width:100%; } .export-options { left:0; right:0; width:auto; } }
+    @media (max-width: 560px) { .dashboard { grid-template-columns: 1fr; } main { padding-inline: 14px; } .panel { padding: 18px; } .ticket-queue-header { align-items:stretch; flex-direction:column; } .export-button { width:100%; } .export-menu { width:100%; } }
     .details-button { background:#eef4ff; color:#175cd3; border:1px solid #cfe0ff; padding:6px 10px; border-radius:8px; font-weight:800; cursor:pointer; }
     .details-button:hover { background:#dbeafe; }
     .ticket-modal { position:fixed; inset:0; z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(15,23,42,.55); }
@@ -234,11 +230,7 @@
     <div class="ticket-queue-header">
       <h2>Ticket Queue</h2>
       <div class="export-menu" id="export-controls">
-        <button class="export-button" id="export-button" type="button" aria-haspopup="menu" aria-expanded="false">Export CSV ▾</button>
-        <div class="export-options" id="export-options" role="menu">
-          <button class="export-option" type="button" data-scope="filtered" role="menuitem">Export filtered tickets</button>
-          <button class="export-option" type="button" data-scope="all" role="menuitem">Export all tickets</button>
-        </div>
+        <button class="export-button" id="export-button" type="button" title="Exports the filtered queue, or all tickets when no filters are active">Export</button>
       </div>
     </div>
     <div class="toolbar">
@@ -345,7 +337,7 @@
 
     function closeTicketDetails() { document.getElementById('ticket-modal').classList.remove('open'); }
     document.getElementById('ticket-modal').addEventListener('click', event => { if (event.target.id === 'ticket-modal') closeTicketDetails(); });
-    document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeTicketDetails(); closeExportMenu(); } });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') closeTicketDetails(); });
 
     async function loadCurrentUser() {
       const response = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
@@ -418,20 +410,15 @@
       }
     }
 
-    function closeExportMenu() {
-      document.getElementById('export-options').classList.remove('open');
-      document.getElementById('export-button').setAttribute('aria-expanded', 'false');
-    }
-
-    function toggleExportMenu() {
-      const menu = document.getElementById('export-options');
-      const open = menu.classList.toggle('open');
-      document.getElementById('export-button').setAttribute('aria-expanded', String(open));
-    }
-
-    async function exportTickets(scope) {
+    async function exportTickets() {
       if (!currentUser || currentUser.role !== 'full_admin') return;
-      closeExportMenu();
+      const filterValues = [
+        document.getElementById('ticket-search').value.trim(),
+        document.getElementById('department-filter').value,
+        document.getElementById('status-filter').value,
+        document.getElementById('priority-filter').value
+      ];
+      const scope = filterValues.some(Boolean) ? 'filtered' : 'all';
       const params = new URLSearchParams({ scope, sort: document.getElementById('ticket-sort').value });
       if (scope === 'filtered') {
         const filters = {
@@ -549,9 +536,7 @@
     document.getElementById('ticket-page-size').addEventListener('change', event => { ticketPageSize = Number(event.target.value); ticketPage = 1; loadDashboard(); });
     document.getElementById('ticket-prev').addEventListener('click', () => { if (ticketPage > 1) { ticketPage -= 1; loadDashboard(); } });
     document.getElementById('ticket-next').addEventListener('click', () => { if (ticketPage < ticketTotalPages) { ticketPage += 1; loadDashboard(); } });
-    document.getElementById('export-button').addEventListener('click', event => { event.stopPropagation(); toggleExportMenu(); });
-    document.querySelectorAll('.export-option').forEach(option => option.addEventListener('click', () => exportTickets(option.dataset.scope)));
-    document.addEventListener('click', closeExportMenu);
+    document.getElementById('export-button').addEventListener('click', exportTickets);
     document.getElementById('user-search').addEventListener('input', renderUsers);
 
     loadCurrentUser().then(ok => ok && loadDashboard());
