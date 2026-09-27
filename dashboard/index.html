@@ -98,17 +98,38 @@
     .toolbar input, .toolbar select { flex: 1; min-width: 180px; margin-top: 0; }
     .ticket-queue-header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:12px; }
     .ticket-queue-header h2 { margin:0; }
+    .queue-actions { display:flex; align-items:center; gap:8px; }
     .export-menu { display:none; }
-    .export-button { position:relative; display:grid; place-items:center; width:42px!important; min-width:42px!important; height:42px; margin:0; padding:0!important; border:1px solid #d7dee8!important; border-radius:9px!important; white-space:nowrap; background:#f8fafc!important; color:#475569!important; box-shadow:0 4px 12px rgba(51,65,85,.12)!important; }
-    .export-button:hover { background:#e2e8f0!important; color:#1e293b!important; box-shadow:0 7px 16px rgba(51,65,85,.18)!important; }
-    .export-button:disabled { cursor:wait; opacity:.65; transform:none; }
-    .export-button svg { width:21px; height:21px; pointer-events:none; }
-    .export-button::after { content:attr(aria-label); position:absolute; right:0; bottom:calc(100% + 8px); z-index:60; padding:6px 9px; border-radius:6px; background:#20252b; color:#fff; font-size:12px; font-weight:700; line-height:1; opacity:0; visibility:hidden; transform:translateY(3px); transition:opacity .15s ease,transform .15s ease,visibility .15s ease; pointer-events:none; }
-    .export-button:hover::after,.export-button:focus-visible::after { opacity:1; visibility:visible; transform:translateY(0); }
+    .filter-menu { position:relative; }
+    .queue-icon-button { position:relative; display:grid; place-items:center; width:42px!important; min-width:42px!important; height:42px; margin:0; padding:0!important; border:1px solid #d7dee8!important; border-radius:9px!important; white-space:nowrap; background:#f8fafc!important; color:#475569!important; box-shadow:0 4px 12px rgba(51,65,85,.12)!important; }
+    .queue-icon-button:hover { background:#e2e8f0!important; color:#1e293b!important; box-shadow:0 7px 16px rgba(51,65,85,.18)!important; }
+    .queue-icon-button:disabled { cursor:wait; opacity:.65; transform:none; }
+    .queue-icon-button svg { width:21px; height:21px; pointer-events:none; }
+    .queue-icon-button::after { content:attr(aria-label); position:absolute; right:0; bottom:calc(100% + 8px); z-index:70; padding:6px 9px; border-radius:6px; background:#20252b; color:#fff; font-size:12px; font-weight:700; line-height:1; opacity:0; visibility:hidden; transform:translateY(3px); transition:opacity .15s ease,transform .15s ease,visibility .15s ease; pointer-events:none; }
+    .queue-icon-button:hover::after,.queue-icon-button:focus-visible::after { opacity:1; visibility:visible; transform:translateY(0); }
+    .filter-button.active { background:#e8eef7!important; color:#1d4ed8!important; border-color:#b8ccf2!important; }
+    .filter-count { display:none; position:absolute; top:-6px; right:-6px; min-width:18px; height:18px; padding:0 5px; align-items:center; justify-content:center; border:2px solid #fff; border-radius:999px; background:#2563eb; color:#fff; font-size:10px; font-weight:900; line-height:1; }
+    .filter-count.visible { display:flex; }
+    .filter-popover { display:none; position:absolute; top:calc(100% + 10px); right:0; z-index:65; width:min(390px,calc(100vw - 48px)); padding:18px; background:#fff; border:1px solid #d8e0eb; border-radius:14px; box-shadow:0 20px 48px rgba(15,23,42,.18); }
+    .filter-popover.open { display:block; }
+    .filter-popover-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .filter-popover-header strong { font-size:16px; }
+    .filter-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .filter-field { min-width:0; }
+    .filter-field.full { grid-column:1 / -1; }
+    .filter-field label { margin:0 0 5px; color:#475569; font-size:12px; font-weight:800; }
+    .filter-field input,.filter-field select { width:100%; min-width:0; margin:0; padding:9px 10px; }
+    .filter-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; padding-top:14px; border-top:1px solid #e5e7eb; }
+    .filter-actions button { width:auto; margin:0; padding:9px 13px; }
+    .filter-clear { background:#eef2f6!important; color:#475569!important; box-shadow:none!important; }
+    .filter-apply { background:#2563eb!important; color:#fff!important; }
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 12px; }
     th, td { padding: 14px 10px; border-bottom: 1px solid #eaecf0; text-align: left; white-space: nowrap; }
     th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; background: #f8fafc; }
+    .sort-header { display:inline-flex; align-items:center; gap:5px; width:auto; min-width:0; margin:0; padding:0!important; border:0!important; border-radius:4px!important; background:transparent!important; color:inherit!important; box-shadow:none!important; font:inherit; text-transform:inherit; letter-spacing:inherit; }
+    .sort-header:hover { background:transparent!important; color:#1d4ed8!important; box-shadow:none!important; transform:none; }
+    .sort-indicator { min-width:12px; color:#2563eb; font-size:12px; }
     tr:hover td { background: #f8fbff; }
     .badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
     .critical { background: #fee4e2; color: #b42318; }
@@ -138,7 +159,7 @@
     .pagination-summary, .pagination-page { color: #64748b; font-size: 13px; font-weight: 700; }
     .muted { color: #667085; }
     @media (max-width: 900px) { .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); } .topbar { align-items: flex-start; flex-direction: column; } }
-    @media (max-width: 560px) { .dashboard { grid-template-columns: 1fr; } main { padding-inline: 14px; } .panel { padding: 18px; } .ticket-queue-header { align-items:center; } }
+    @media (max-width: 560px) { .dashboard { grid-template-columns: 1fr; } main { padding-inline: 14px; } .panel { padding: 18px; } .ticket-queue-header { align-items:center; } .filter-grid { grid-template-columns:1fr; } .filter-field.full { grid-column:auto; } }
     .details-button { background:#eef4ff; color:#175cd3; border:1px solid #cfe0ff; padding:6px 10px; border-radius:8px; font-weight:800; cursor:pointer; }
     .details-button:hover { background:#dbeafe; }
     .ticket-modal { position:fixed; inset:0; z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(15,23,42,.55); }
@@ -233,54 +254,46 @@
   <section class="panel">
     <div class="ticket-queue-header">
       <h2>Ticket Queue</h2>
-      <div class="export-menu" id="export-controls">
-        <button class="export-button" id="export-button" type="button" aria-label="Export CSV" title="Exports the filtered queue, or all tickets when no filters are active">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6 3.75h7l4 4V12"/><path d="M13 3.75v4h4"/><path d="M6 3.75a2 2 0 0 0-2 2v12.5a2 2 0 0 0 2 2h5"/>
-            <circle cx="16.5" cy="16.5" r="4"/><path d="M16.5 14.5v4M14.8 16.9l1.7 1.7 1.7-1.7"/>
-          </svg>
-        </button>
+      <div class="queue-actions">
+        <div class="export-menu" id="export-controls">
+          <button class="queue-icon-button export-button" id="export-button" type="button" aria-label="Export CSV" title="Exports the filtered queue, or all tickets when no filters are active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 3.75h7l4 4V12"/><path d="M13 3.75v4h4"/><path d="M6 3.75a2 2 0 0 0-2 2v12.5a2 2 0 0 0 2 2h5"/>
+              <circle cx="16.5" cy="16.5" r="4"/><path d="M16.5 14.5v4M14.8 16.9l1.7 1.7 1.7-1.7"/>
+            </svg>
+          </button>
+        </div>
+        <div class="filter-menu" id="filter-menu">
+          <button class="queue-icon-button filter-button" id="filter-button" type="button" aria-label="Advanced filters" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"/></svg>
+            <span class="filter-count" id="filter-count" aria-hidden="true"></span>
+          </button>
+          <div class="filter-popover" id="filter-popover" role="dialog" aria-label="Advanced ticket filters">
+            <div class="filter-popover-header"><strong>Advanced filters</strong></div>
+            <div class="filter-grid">
+              <div class="filter-field full"><label for="ticket-search">Search</label><input id="ticket-search" placeholder="Ticket ID, title, or requester"></div>
+              <div class="filter-field"><label for="department-filter">Department</label><select id="department-filter"><option value="">All departments</option><option>Networking</option><option>IT Helpdesk</option><option>Software</option></select></div>
+              <div class="filter-field"><label for="status-filter">Status</label><select id="status-filter"><option value="">All statuses</option><option>Open</option><option>In Progress</option><option>Completed</option><option>Cancelled</option></select></div>
+              <div class="filter-field"><label for="priority-filter">Priority</label><select id="priority-filter"><option value="">All priorities</option><option>Critical</option><option>High</option><option>Normal</option><option>Low</option></select></div>
+              <div class="filter-field"><label for="ticket-page-size">Tickets per page</label><select id="ticket-page-size"><option value="10">10 tickets</option><option value="25">25 tickets</option><option value="50">50 tickets</option></select></div>
+            </div>
+            <div class="filter-actions"><button class="filter-clear" id="filter-clear" type="button">Clear all</button><button class="filter-apply" id="filter-apply" type="button">Apply filters</button></div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="toolbar">
-      <input id="ticket-search" placeholder="Search ticket, title, or requester">
-      <select id="department-filter">
-        <option value="">All departments</option>
-        <option>Networking</option>
-        <option>IT Helpdesk</option>
-        <option>Software</option>
-      </select>
-      <select id="status-filter">
-        <option value="">All statuses</option>
-        <option>Open</option>
-        <option>In Progress</option>
-        <option>Completed</option>
-        <option>Cancelled</option>
-      </select>
-      <select id="priority-filter">
-        <option value="">All priorities</option>
-        <option>Critical</option>
-        <option>High</option>
-        <option>Normal</option>
-        <option>Low</option>
-      </select>
-      <select id="ticket-sort" aria-label="Sort tickets">
-        <option value="operational">Operational priority</option>
-        <option value="newest">Newest first</option>
-        <option value="oldest">Oldest first</option>
-        <option value="sla">SLA deadline</option>
-        <option value="priority">Priority</option>
-        <option value="recently-completed">Recently completed</option>
-      </select>
-      <select id="ticket-page-size" aria-label="Tickets per page">
-        <option value="10">10 per page</option>
-        <option value="25">25 per page</option>
-        <option value="50">50 per page</option>
-      </select>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Ticket</th><th>Title</th><th>Requester</th><th>Department</th><th>Priority</th><th>Status</th><th>Timeline</th><th>Change Department</th><th>Update Status</th></tr></thead>
+        <thead><tr>
+          <th data-sort="ticket"><button class="sort-header" type="button" data-sort="ticket">Ticket <span class="sort-indicator"></span></button></th>
+          <th data-sort="title"><button class="sort-header" type="button" data-sort="title">Title <span class="sort-indicator"></span></button></th>
+          <th data-sort="requester"><button class="sort-header" type="button" data-sort="requester">Requester <span class="sort-indicator"></span></button></th>
+          <th data-sort="department"><button class="sort-header" type="button" data-sort="department">Department <span class="sort-indicator"></span></button></th>
+          <th data-sort="priority"><button class="sort-header" type="button" data-sort="priority">Priority <span class="sort-indicator"></span></button></th>
+          <th data-sort="status"><button class="sort-header" type="button" data-sort="status">Status <span class="sort-indicator"></span></button></th>
+          <th data-sort="timeline"><button class="sort-header" type="button" data-sort="timeline">Timeline <span class="sort-indicator"></span></button></th>
+          <th>Change Department</th><th>Update Status</th>
+        </tr></thead>
         <tbody id="ticket-rows"><tr><td colspan="9" class="muted">Loading tickets...</td></tr></tbody>
       </table>
     </div>
@@ -318,8 +331,10 @@
     let ticketPageSize = 10;
     let ticketTotalPages = 1;
     let ticketTotal = 0;
-    let ticketSearchTimer = null;
     let dashboardRequestId = 0;
+    let appliedFilters = { search: '', department: '', status: '', priority: '' };
+    let ticketSortField = '';
+    let ticketSortDirection = '';
 
     function openTicketDetails(ticketId) {
       const ticket = dashboardData.tickets.find(t => t.ticket_id === ticketId);
@@ -346,7 +361,7 @@
 
     function closeTicketDetails() { document.getElementById('ticket-modal').classList.remove('open'); }
     document.getElementById('ticket-modal').addEventListener('click', event => { if (event.target.id === 'ticket-modal') closeTicketDetails(); });
-    document.addEventListener('keydown', event => { if (event.key === 'Escape') closeTicketDetails(); });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeTicketDetails(); closeFilterPopover(); } });
 
     async function loadCurrentUser() {
       const response = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
@@ -378,20 +393,95 @@
       document.getElementById('user-rows').innerHTML = users.map(user => `<tr><td>${user.full_name}</td><td>${user.username}</td><td>${user.email}</td><td>${user.role}</td><td>${user.department || '—'}</td><td>${user.active ? 'Active' : 'Inactive'}</td><td>${new Date(user.created_at).toLocaleDateString()}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No matching users</td></tr>';
     }
 
-    async function loadDashboard() {
-      const requestId = ++dashboardRequestId;
-      const params = new URLSearchParams({
-        page: String(ticketPage),
-        limit: String(ticketPageSize),
-        sort: document.getElementById('ticket-sort').value
+    function ticketSortMode() {
+      return ticketSortField && ticketSortDirection ? `${ticketSortField}-${ticketSortDirection}` : 'operational';
+    }
+
+    function updateSortHeaders() {
+      document.querySelectorAll('th[data-sort]').forEach(header => {
+        const field = header.dataset.sort;
+        const indicator = header.querySelector('.sort-indicator');
+        const active = field === ticketSortField;
+        indicator.textContent = active ? (ticketSortDirection === 'asc' ? '↑' : '↓') : '';
+        if (active) header.setAttribute('aria-sort', ticketSortDirection === 'asc' ? 'ascending' : 'descending');
+        else header.removeAttribute('aria-sort');
       });
-      const filters = {
+    }
+
+    function sortByColumn(field) {
+      if (ticketSortField !== field) { ticketSortField = field; ticketSortDirection = 'asc'; }
+      else if (ticketSortDirection === 'asc') ticketSortDirection = 'desc';
+      else { ticketSortField = ''; ticketSortDirection = ''; }
+      ticketPage = 1;
+      updateSortHeaders();
+      loadDashboard();
+    }
+
+    function updateFilterIndicator() {
+      const count = Object.values(appliedFilters).filter(Boolean).length;
+      const badge = document.getElementById('filter-count');
+      const button = document.getElementById('filter-button');
+      badge.textContent = count ? String(count) : '';
+      badge.classList.toggle('visible', count > 0);
+      button.classList.toggle('active', count > 0);
+    }
+
+    function syncFilterControls() {
+      document.getElementById('ticket-search').value = appliedFilters.search;
+      document.getElementById('department-filter').value = appliedFilters.department;
+      document.getElementById('status-filter').value = appliedFilters.status;
+      document.getElementById('priority-filter').value = appliedFilters.priority;
+      document.getElementById('ticket-page-size').value = String(ticketPageSize);
+    }
+
+    function closeFilterPopover() {
+      document.getElementById('filter-popover').classList.remove('open');
+      document.getElementById('filter-button').setAttribute('aria-expanded', 'false');
+    }
+
+    function toggleFilterPopover() {
+      const popover = document.getElementById('filter-popover');
+      const opening = !popover.classList.contains('open');
+      if (opening) syncFilterControls();
+      popover.classList.toggle('open', opening);
+      document.getElementById('filter-button').setAttribute('aria-expanded', String(opening));
+    }
+
+    function applyFilters() {
+      appliedFilters = {
         search: document.getElementById('ticket-search').value.trim(),
         department: document.getElementById('department-filter').value,
         status: document.getElementById('status-filter').value,
         priority: document.getElementById('priority-filter').value
       };
-      Object.entries(filters).forEach(([key, value]) => { if (value) params.set(key, value); });
+      ticketPageSize = Number(document.getElementById('ticket-page-size').value) || 10;
+      ticketPage = 1;
+      updateFilterIndicator();
+      closeFilterPopover();
+      loadDashboard();
+    }
+
+    function clearFilters() {
+      appliedFilters = { search: '', department: '', status: '', priority: '' };
+      ticketPageSize = 10;
+      ticketSortField = '';
+      ticketSortDirection = '';
+      ticketPage = 1;
+      syncFilterControls();
+      updateFilterIndicator();
+      updateSortHeaders();
+      closeFilterPopover();
+      loadDashboard();
+    }
+
+    async function loadDashboard() {
+      const requestId = ++dashboardRequestId;
+      const params = new URLSearchParams({
+        page: String(ticketPage),
+        limit: String(ticketPageSize),
+        sort: ticketSortMode()
+      });
+      Object.entries(appliedFilters).forEach(([key, value]) => { if (value) params.set(key, value); });
       const headers = { Authorization: `Bearer ${sessionStorage.getItem('token')}` };
       const target = document.getElementById('ticket-rows');
       try {
@@ -421,22 +511,10 @@
 
     async function exportTickets() {
       if (!currentUser || currentUser.role !== 'full_admin') return;
-      const filterValues = [
-        document.getElementById('ticket-search').value.trim(),
-        document.getElementById('department-filter').value,
-        document.getElementById('status-filter').value,
-        document.getElementById('priority-filter').value
-      ];
-      const scope = filterValues.some(Boolean) ? 'filtered' : 'all';
-      const params = new URLSearchParams({ scope, sort: document.getElementById('ticket-sort').value });
+      const scope = Object.values(appliedFilters).some(Boolean) ? 'filtered' : 'all';
+      const params = new URLSearchParams({ scope, sort: ticketSortMode() });
       if (scope === 'filtered') {
-        const filters = {
-          search: document.getElementById('ticket-search').value.trim(),
-          department: document.getElementById('department-filter').value,
-          status: document.getElementById('status-filter').value,
-          priority: document.getElementById('priority-filter').value
-        };
-        Object.entries(filters).forEach(([key, value]) => { if (value) params.set(key, value); });
+        Object.entries(appliedFilters).forEach(([key, value]) => { if (value) params.set(key, value); });
       }
       const button = document.getElementById('export-button');
       const originalLabel = button.getAttribute('aria-label');
@@ -537,17 +615,20 @@
       await loadDashboard();
     }
 
-    document.getElementById('ticket-search').addEventListener('input', () => {
-      clearTimeout(ticketSearchTimer);
-      ticketSearchTimer = setTimeout(() => { ticketPage = 1; loadDashboard(); }, 300);
-    });
-    ['department-filter', 'status-filter', 'priority-filter', 'ticket-sort'].forEach((id) => document.getElementById(id).addEventListener('change', () => { ticketPage = 1; loadDashboard(); }));
-    document.getElementById('ticket-page-size').addEventListener('change', event => { ticketPageSize = Number(event.target.value); ticketPage = 1; loadDashboard(); });
+    document.getElementById('filter-button').addEventListener('click', event => { event.stopPropagation(); toggleFilterPopover(); });
+    document.getElementById('filter-popover').addEventListener('click', event => event.stopPropagation());
+    document.getElementById('filter-apply').addEventListener('click', applyFilters);
+    document.getElementById('filter-clear').addEventListener('click', clearFilters);
+    document.getElementById('ticket-search').addEventListener('keydown', event => { if (event.key === 'Enter') applyFilters(); });
+    document.querySelectorAll('.sort-header').forEach(button => button.addEventListener('click', () => sortByColumn(button.dataset.sort)));
+    document.addEventListener('click', closeFilterPopover);
     document.getElementById('ticket-prev').addEventListener('click', () => { if (ticketPage > 1) { ticketPage -= 1; loadDashboard(); } });
     document.getElementById('ticket-next').addEventListener('click', () => { if (ticketPage < ticketTotalPages) { ticketPage += 1; loadDashboard(); } });
     document.getElementById('export-button').addEventListener('click', exportTickets);
     document.getElementById('user-search').addEventListener('input', renderUsers);
 
+    updateFilterIndicator();
+    updateSortHeaders();
     loadCurrentUser().then(ok => ok && loadDashboard());
     setInterval(loadDashboard, 60000);
   </script>

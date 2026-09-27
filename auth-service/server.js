@@ -71,8 +71,23 @@ function ticketWhere(session, filters={}) {
 }
 function ticketOrder(mode) {
   const priority="CASE priority WHEN 'Critical' THEN 0 WHEN 'High' THEN 1 WHEN 'Normal' THEN 2 WHEN 'Low' THEN 3 ELSE 4 END";
+  const status="CASE status WHEN 'Open' THEN 0 WHEN 'In Progress' THEN 1 WHEN 'Completed' THEN 2 WHEN 'Cancelled' THEN 3 ELSE 4 END";
   const active="status IN ('Open','In Progress')";
   const activity="COALESCE(completed_at,created_at)";
+  const timeline=`CASE WHEN ${active} THEN due_at ELSE COALESCE(completed_at,created_at) END`;
+  const textOrders={
+    'ticket-asc':'ticket_id ASC','ticket-desc':'ticket_id DESC',
+    'title-asc':'LOWER(title) ASC NULLS LAST','title-desc':'LOWER(title) DESC NULLS LAST',
+    'requester-asc':'LOWER(requester) ASC NULLS LAST','requester-desc':'LOWER(requester) DESC NULLS LAST',
+    'department-asc':'LOWER(department) ASC NULLS LAST','department-desc':'LOWER(department) DESC NULLS LAST'
+  };
+  if(textOrders[mode]) return `${textOrders[mode]}, created_at DESC`;
+  if(mode==='priority-asc') return `${priority} ASC, due_at ASC NULLS LAST, created_at DESC`;
+  if(mode==='priority-desc') return `${priority} DESC, due_at ASC NULLS LAST, created_at DESC`;
+  if(mode==='status-asc') return `${status} ASC, created_at DESC`;
+  if(mode==='status-desc') return `${status} DESC, created_at DESC`;
+  if(mode==='timeline-asc') return `${timeline} ASC NULLS LAST, created_at DESC`;
+  if(mode==='timeline-desc') return `${timeline} DESC NULLS LAST, created_at DESC`;
   if(mode==='newest') return 'created_at DESC';
   if(mode==='oldest') return 'created_at ASC';
   if(mode==='sla') return `CASE WHEN ${active} THEN 0 WHEN status='Completed' THEN 1 WHEN status='Cancelled' THEN 2 ELSE 3 END, CASE WHEN ${active} THEN due_at END ASC NULLS LAST, ${priority}, ${activity} DESC`;
