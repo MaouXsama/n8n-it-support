@@ -110,6 +110,15 @@
     .small-button { width: auto; margin: 0; padding: 7px 10px; }
     .action-stack { display: flex; gap: 6px; align-items: center; }
     .action-stack select { width: 125px; margin: 0; padding: 7px; font-size: 12px; }
+    .timeline { display: grid; gap: 7px; min-width: 190px; }
+    .timeline-row { display: flex; align-items: center; gap: 7px; }
+    .timeline-label { color: #667085; font-size: 12px; font-weight: 800; }
+    .timeline-value { font-size: 12px; font-weight: 700; }
+    .timeline-badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+    .timeline-due { background: #ffedd5; color: #c2410c; }
+    .timeline-completed { background: #dcfce7; color: #16723b; }
+    .timeline-late { background: #fee2e2; color: #991b1b; }
+    .timeline-cancelled { background: #eef2f6; color: #596579; }
     .muted { color: #667085; }
     @media (max-width: 900px) { .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); } .topbar { align-items: flex-start; flex-direction: column; } }
     @media (max-width: 560px) { .dashboard { grid-template-columns: 1fr; } main { padding-inline: 14px; } .panel { padding: 18px; } }
@@ -230,8 +239,8 @@
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Ticket</th><th>Title</th><th>Requester</th><th>Department</th><th>Priority</th><th>Status</th><th>SLA</th><th>Action</th></tr></thead>
-        <tbody id="ticket-rows"><tr><td colspan="8" class="muted">Loading tickets...</td></tr></tbody>
+        <thead><tr><th>Ticket</th><th>Title</th><th>Requester</th><th>Department</th><th>Priority</th><th>Status</th><th>Timeline</th><th>Change Department</th><th>Update Status</th></tr></thead>
+        <tbody id="ticket-rows"><tr><td colspan="9" class="muted">Loading tickets...</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -350,6 +359,23 @@
       return ticket.status !== 'Completed' && ticket.due_at && new Date(ticket.due_at) <= new Date();
     }
 
+    function formatTimelineDate(value) {
+      return value ? new Date(value).toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }) : '—';
+    }
+
+    function renderTimeline(ticket) {
+      const created = `<div class="timeline-row"><span class="timeline-label">Created:</span><span class="timeline-value">${formatTimelineDate(ticket.created_at)}</span></div>`;
+      if (ticket.status === 'Completed') {
+        const completedAfterSla = ticket.completed_at && ticket.due_at && new Date(ticket.completed_at) > new Date(ticket.due_at);
+        const completedClass = completedAfterSla ? 'timeline-late' : 'timeline-completed';
+        return `<div class="timeline">${created}<div class="timeline-row"><span class="timeline-label">Completed:</span><span class="timeline-badge ${completedClass}">${formatTimelineDate(ticket.completed_at)}</span></div></div>`;
+      }
+      if (ticket.status === 'Cancelled') {
+        return `<div class="timeline">${created}<div class="timeline-row"><span class="timeline-label">Status:</span><span class="timeline-badge timeline-cancelled">Cancelled</span></div></div>`;
+      }
+      return `<div class="timeline">${created}<div class="timeline-row"><span class="timeline-label">Due:</span><span class="timeline-badge timeline-due">${formatTimelineDate(ticket.due_at)}</span></div></div>`;
+    }
+
     function renderTickets() {
       const query = document.getElementById('ticket-search').value.toLowerCase();
       const department = document.getElementById('department-filter').value;
@@ -360,18 +386,18 @@
         return (!query || text.includes(query)) && (!department || ticket.department === department) && (!status || ticket.status === status) && (!priority || ticket.priority === priority);
       });
       const target = document.getElementById('ticket-rows');
-      if (!rows.length) { target.innerHTML = '<tr><td colspan="8" class="muted">No matching tickets</td></tr>'; return; }
+      if (!rows.length) { target.innerHTML = '<tr><td colspan="9" class="muted">No matching tickets</td></tr>'; return; }
       target.innerHTML = rows.map((ticket) => {
         const overdue = ticketIsOverdue(ticket);
-        const due = ticket.due_at ? new Date(ticket.due_at).toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }) : '-';
         const badge = String(ticket.priority || 'Normal').toLowerCase();
         const departments = ['Networking','IT Helpdesk','Software'];
         const move = currentUser && (currentUser.role === 'full_admin' || currentUser.role === 'department_admin') ? `<select id="dep-${ticket.ticket_id}">${departments.map(d => `<option ${d === ticket.department ? 'selected' : ''}>${d}</option>`).join('')}</select><button class="small-button" onclick="reassignTicket('${ticket.ticket_id}')">Move</button>` : '';
         const statuses = ['Open','In Progress','Completed','Cancelled'];
         const statusControl = currentUser && (currentUser.role === 'full_admin' || currentUser.role === 'department_admin') ? `<select id="status-${ticket.ticket_id}">${statuses.map(s => `<option ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}</select><button class="small-button" onclick="updateTicketStatus('${ticket.ticket_id}')">Update</button>` : '';
-        const action = `<div class="action-stack">${move}${statusControl}</div>`;
+        const moveControl = `<div class="action-stack">${move}</div>`;
+        const updateControl = `<div class="action-stack">${statusControl}</div>`;
         const statusBadge = String(ticket.status || 'Open').toLowerCase().replace(/\s+/g, '-');
-        return `<tr class="${overdue ? 'overdue-row' : ''}"><td>${ticket.ticket_id}</td><td><strong>${ticket.title}</strong><br><button class="details-button" onclick="openTicketDetails('${ticket.ticket_id}')">View details</button></td><td>${ticket.requester || 'Not provided'}</td><td>${ticket.department}</td><td><span class="badge ${badge}">${ticket.priority || 'Normal'}</span></td><td><span class="badge ${statusBadge}">${ticket.status}</span></td><td>${overdue ? 'OVERDUE' : due}</td><td>${action}</td></tr>`;
+        return `<tr class="${overdue ? 'overdue-row' : ''}"><td>${ticket.ticket_id}</td><td><strong>${ticket.title}</strong><br><button class="details-button" onclick="openTicketDetails('${ticket.ticket_id}')">View details</button></td><td>${ticket.requester || 'Not provided'}</td><td>${ticket.department}</td><td><span class="badge ${badge}">${ticket.priority || 'Normal'}</span></td><td><span class="badge ${statusBadge}">${ticket.status}</span></td><td>${renderTimeline(ticket)}</td><td>${moveControl}</td><td>${updateControl}</td></tr>`;
       }).join('');
     }
 
