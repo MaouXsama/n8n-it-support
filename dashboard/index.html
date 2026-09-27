@@ -23,6 +23,39 @@
       gap: 14px;
       margin-bottom: 26px;
     }
+    .metrics-dashboard { display:grid; gap:18px; margin-bottom:26px; }
+    .metrics-primary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
+    .metric-card { position:relative; min-height:148px; overflow:hidden; }
+    .metric-card::after { content:""; position:absolute; inset:0 auto 0 0; width:4px; background:var(--metric-accent,#64748b); }
+    .metric-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+    .metric-icon { display:grid; place-items:center; width:40px; height:40px; flex:none; border-radius:11px; background:var(--metric-soft,#eef2f6); color:var(--metric-accent,#475569); }
+    .metric-icon svg { width:20px; height:20px; }
+    .metric-card .value { margin-top:16px; }
+    .metric-note { margin-top:4px; color:#64748b; font-size:12px; font-weight:650; }
+    .metric-open { --metric-accent:#b77908; --metric-soft:#fff7d6; }
+    .metric-progress { --metric-accent:#087f9d; --metric-soft:#e1f5f9; }
+    .metric-overdue { --metric-accent:#c93227; --metric-soft:#fee2e2; }
+    .metric-sla { --metric-accent:#16803f; --metric-soft:#dcfce7; }
+    .sla-track { height:7px; margin-top:13px; overflow:hidden; border-radius:999px; background:#e5e7eb; }
+    .sla-bar { width:0; height:100%; border-radius:inherit; background:#22a052; transition:width .35s ease; }
+    .department-workload { padding:22px 24px; }
+    .metric-section-header { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:16px; }
+    .metric-section-header p { margin:3px 0 0; color:#64748b; font-size:13px; }
+    .workload-grid { display:grid; gap:10px; }
+    .workload-row { display:grid; grid-template-columns:minmax(150px,1.2fr) 90px 110px minmax(160px,2fr) 70px; align-items:center; gap:18px; min-height:58px; padding:10px 12px; border:1px solid #e6ebf2; border-radius:12px; background:#fbfdff; }
+    .workload-name { font-weight:850; color:#172b4d; }
+    .workload-stat { display:grid; gap:1px; color:#334155; font-size:18px; font-weight:850; }
+    .workload-stat small { color:#64748b; font-size:10px; font-weight:800; text-transform:uppercase; }
+    .workload-track { height:8px; overflow:hidden; border-radius:999px; background:#e8edf4; }
+    .workload-bar { width:0; height:100%; border-radius:inherit; background:linear-gradient(90deg,#087f9d,#22c3d6); transition:width .35s ease; }
+    .workload-total { text-align:right; color:#172b4d; font-size:20px; font-weight:900; }
+    .metrics-performance { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:14px; }
+    .performance-card { min-height:118px; padding:18px 20px; }
+    .performance-card .value { margin-top:8px; font-size:29px; }
+    .performance-good .value { color:#16803f; }
+    .performance-bad .value { color:#c93227; }
+    @media(max-width:1050px){.metrics-primary{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics-performance{grid-template-columns:repeat(3,minmax(0,1fr))}.workload-row{grid-template-columns:minmax(140px,1fr) 80px 100px minmax(120px,1.4fr) 60px}}
+    @media(max-width:680px){.metrics-primary,.metrics-performance{grid-template-columns:1fr}.workload-row{grid-template-columns:1fr 1fr 1fr}.workload-track{grid-column:1 / -2}.workload-total{grid-column:-2}.metric-section-header{align-items:flex-start;flex-direction:column}}
 
     .card {
       background: white;
@@ -196,71 +229,28 @@
     <div><h2>Ticket operations</h2><p class="section-subtitle">Review queues, monitor SLAs, and complete tickets from this staff console.</p></div>
   </section>
 
-  <div class="dashboard">
-    <div class="card">
-      <div class="label">Open Tickets</div>
-      <div class="value" id="total_open">-</div>
+  <section class="metrics-dashboard" aria-label="Operational overview">
+    <div class="metrics-primary">
+      <article class="card metric-card metric-open"><div class="metric-card-header"><div><div class="label">Open Tickets</div><div class="metric-note">Currently awaiting action</div></div><span class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16v12H4zM8 7V5h8v2"/><path d="M4 12h5l1.5 2h3L15 12h5"/></svg></span></div><div class="value" id="total_open">-</div></article>
+      <article class="card metric-card metric-progress"><div class="metric-card-header"><div><div class="label">In Progress</div><div class="metric-note">Being handled now</div></div><span class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></span></div><div class="value" id="total_in_progress">-</div></article>
+      <article class="card metric-card metric-overdue"><div class="metric-card-header"><div><div class="label">Overdue</div><div class="metric-note">Past the SLA deadline</div></div><span class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.8 19h18.4L12 3Z"/><path d="M12 9v4M12 17h.01"/></svg></span></div><div class="value overdue" id="overdue_open">-</div></article>
+      <article class="card metric-card metric-sla"><div class="metric-card-header"><div><div class="label">SLA Compliance</div><div class="metric-note">Completed within target</div></div><span class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span></div><div class="value" id="sla_compliance_percentage">-</div><div class="sla-track"><div class="sla-bar" id="sla-progress-bar"></div></div></article>
     </div>
 
-    <div class="card department-card" data-department="Networking">
-      <div class="label">Networking</div>
-      <div class="value" id="networking_open">-</div>
-    </div>
+    <section class="card department-workload"><div class="metric-section-header"><div><h2>Department workload</h2><p>Open and in-progress tickets across operational teams.</p></div></div><div class="workload-grid">
+      <div class="workload-row department-card" data-department="Networking"><div class="workload-name">Networking</div><div class="workload-stat"><span id="networking_open">-</span><small>Open</small></div><div class="workload-stat"><span id="networking_in_progress">-</span><small>In progress</small></div><div class="workload-track"><div class="workload-bar" id="networking-workload-bar"></div></div><div class="workload-total" id="networking-total-active">-</div></div>
+      <div class="workload-row department-card" data-department="IT Helpdesk"><div class="workload-name">IT Helpdesk</div><div class="workload-stat"><span id="helpdesk_open">-</span><small>Open</small></div><div class="workload-stat"><span id="helpdesk_in_progress">-</span><small>In progress</small></div><div class="workload-track"><div class="workload-bar" id="helpdesk-workload-bar"></div></div><div class="workload-total" id="helpdesk-total-active">-</div></div>
+      <div class="workload-row department-card" data-department="Software"><div class="workload-name">Software</div><div class="workload-stat"><span id="software_open">-</span><small>Open</small></div><div class="workload-stat"><span id="software_in_progress">-</span><small>In progress</small></div><div class="workload-track"><div class="workload-bar" id="software-workload-bar"></div></div><div class="workload-total" id="software-total-active">-</div></div>
+    </div></section>
 
-    <div class="card department-card" data-department="IT Helpdesk">
-      <div class="label">IT Helpdesk</div>
-      <div class="value" id="helpdesk_open">-</div>
+    <div class="metrics-performance">
+      <article class="card performance-card performance-good"><div class="label">Completed Within SLA</div><div class="value" id="completed_within_sla">-</div></article>
+      <article class="card performance-card performance-bad"><div class="label">Completed After SLA</div><div class="value" id="completed_after_sla">-</div></article>
+      <article class="card performance-card"><div class="label">Completed Today</div><div class="value" id="completed_today">-</div></article>
+      <article class="card performance-card"><div class="label">Completed Last 7 Days</div><div class="value" id="completed_last_7_days">-</div></article>
+      <article class="card performance-card"><div class="label">Created Today</div><div class="value" id="created_today">-</div></article>
     </div>
-
-    <div class="card department-card" data-department="Software">
-      <div class="label">Software</div>
-      <div class="value" id="software_open">-</div>
-    </div>
-
-    <div class="card">
-      <div class="label">In Progress Tickets</div>
-      <div class="value" id="total_in_progress">-</div>
-    </div>
-
-    <div class="card department-card" data-department="Networking">
-      <div class="label">Networking In Progress</div>
-      <div class="value" id="networking_in_progress">-</div>
-    </div>
-
-    <div class="card department-card" data-department="IT Helpdesk">
-      <div class="label">IT Helpdesk In Progress</div>
-      <div class="value" id="helpdesk_in_progress">-</div>
-    </div>
-
-    <div class="card department-card" data-department="Software">
-      <div class="label">Software In Progress</div>
-      <div class="value" id="software_in_progress">-</div>
-    </div>
-
-    <div class="card"><div class="label">SLA Compliance</div><div class="value" id="sla_compliance_percentage">-</div></div>
-    <div class="card"><div class="label">Completed Within SLA</div><div class="value" id="completed_within_sla">-</div></div>
-    <div class="card"><div class="label">Completed After SLA</div><div class="value" id="completed_after_sla">-</div></div>
-
-    <div class="card">
-      <div class="label">Completed Today</div>
-      <div class="value" id="completed_today">-</div>
-    </div>
-
-    <div class="card">
-      <div class="label">Completed Last 7 Days</div>
-      <div class="value" id="completed_last_7_days">-</div>
-    </div>
-
-    <div class="card">
-      <div class="label">Overdue Active Tickets</div>
-      <div class="value overdue" id="overdue_open">-</div>
-    </div>
-
-    <div class="card">
-      <div class="label">Created Today</div>
-      <div class="value" id="created_today">-</div>
-    </div>
-  </div>
+  </section>
 
   <section class="panel">
     <div class="ticket-queue-header">
@@ -687,6 +677,7 @@
           const element = document.getElementById(key);
           if (element) element.textContent = key === 'sla_compliance_percentage' ? `${Number(dashboardData.metrics[key]) || 0}%` : dashboardData.metrics[key];
         }
+        updateMetricVisuals();
         renderTickets();
       } catch (error) {
         if (requestId !== dashboardRequestId) return;
@@ -727,6 +718,23 @@
         button.disabled = false;
         button.setAttribute('aria-label', originalLabel);
       }
+    }
+
+    function updateMetricVisuals() {
+      const metrics = dashboardData.metrics || {};
+      const departments = [
+        { key: 'networking', open: Number(metrics.networking_open) || 0, progress: Number(metrics.networking_in_progress) || 0 },
+        { key: 'helpdesk', open: Number(metrics.helpdesk_open) || 0, progress: Number(metrics.helpdesk_in_progress) || 0 },
+        { key: 'software', open: Number(metrics.software_open) || 0, progress: Number(metrics.software_in_progress) || 0 }
+      ];
+      const maximum = Math.max(1, ...departments.map(item => item.open + item.progress));
+      departments.forEach(item => {
+        const total = item.open + item.progress;
+        document.getElementById(`${item.key}-total-active`).textContent = total;
+        document.getElementById(`${item.key}-workload-bar`).style.width = `${Math.round(total / maximum * 100)}%`;
+      });
+      const compliance = Math.max(0, Math.min(100, Number(metrics.sla_compliance_percentage) || 0));
+      document.getElementById('sla-progress-bar').style.width = `${compliance}%`;
     }
 
     function ticketIsOverdue(ticket) {
