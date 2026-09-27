@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>IT Ticket Dashboard</title>
+  <title>Masar | Admin Dashboard</title>
+  <link rel="icon" href="/dashboard-assets/masar-favicon.svg" type="image/svg+xml">
   <style>
     :root { --navy: #172b4d; --blue: #2563eb; --muted: #667085; --line: #e4e7ec; --surface: #ffffff; --bg: #f5f7fb; }
     * { box-sizing: border-box; }
@@ -414,6 +415,7 @@
       if (!response.ok) { sessionStorage.removeItem('token'); location.href = '/login'; return false; }
       currentUser = (await response.json()).user;
       const title = currentUser.role === 'full_admin' ? 'Full Admin Dashboard' : `${currentUser.department} Dashboard`;
+      document.title = currentUser.role === 'full_admin' ? 'Masar | Admin Dashboard' : `Masar | ${currentUser.department}`;
       document.getElementById('page-title').textContent = title;
       document.getElementById('page-subtitle').textContent = `Welcome, ${currentUser.full_name} · ${currentUser.role === 'full_admin' ? 'All departments' : currentUser.department + ' tickets only'}`;
       if (currentUser.role === 'department_admin') document.querySelectorAll('.department-card').forEach(card => { if (card.dataset.department !== currentUser.department) card.style.display = 'none'; });
