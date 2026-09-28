@@ -1,6 +1,10 @@
 n8n-project-dev-2rd4r7.eastus.cloudapp.azure.com {
     encode gzip
 
+    handle /google30524c0f3cbd8823.html {
+        reverse_proxy 127.0.0.1:8080
+    }
+
     handle / {
         rewrite * /login.html
         reverse_proxy 127.0.0.1:8080
