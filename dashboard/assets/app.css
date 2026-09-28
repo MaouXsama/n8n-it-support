@@ -48,3 +48,15 @@
 .sla-chart-bar{transition:opacity .18s ease}.sla-chart-bar:hover{opacity:.82}.sla-after-line{fill:none;stroke:#c94a43;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round}.sla-after-point{fill:#fff;stroke:#c94a43;stroke-width:2.5}
 @media(max-width:680px){.sla-modal-card{padding:20px!important}.sla-chart-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.sla-period-button{min-width:62px!important}.sla-chart-legend{flex-wrap:wrap}}
 @media(max-width:720px){.header-action{width:48px!important;min-width:48px!important;height:48px!important;min-height:48px!important}}
+
+/* Compact dashboard introduction banners */
+.intro-banner{position:relative;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:20px!important;min-height:96px;padding:18px 22px!important;overflow:hidden;background:linear-gradient(105deg,#f8fbfd 0%,#fff 68%)!important}
+.intro-banner:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:#087f9d}
+.intro-banner-content{display:flex;align-items:center;gap:15px;min-width:0}
+.intro-banner-icon{display:grid;place-items:center;width:44px;height:44px;min-width:44px;border:1px solid #d8e2ea;border-radius:12px;background:#edf7f9;color:#087f9d;box-shadow:0 4px 12px rgba(8,127,157,.08)}
+.intro-banner-icon svg{width:22px;height:22px}
+.intro-banner h2{margin:0 0 4px!important;color:#10233f;font-size:20px!important}
+.intro-banner p{margin:0!important;max-width:760px;color:#6b7a90!important;font-size:13px;line-height:1.55}
+.intro-banner-with-action{justify-content:space-between!important}
+.intro-banner-with-action .intro-banner-content{flex:1}
+@media(max-width:720px){.intro-banner{align-items:flex-start!important;padding:18px!important}.intro-banner-with-action{align-items:stretch!important;flex-direction:column!important}.intro-banner-content{align-items:flex-start}.intro-banner-with-action>a{align-self:flex-start}}
