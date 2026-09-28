@@ -148,6 +148,26 @@ async function triggerAccountWelcome(user) {
   }
 }
 
+async function triggerPasswordChanged(user) {
+  try {
+    const response = await fetch('https://n8n-project-dev-2rd4r7.eastus.cloudapp.azure.com/webhook/password-changed', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        email:user.email,
+        full_name:user.full_name,
+        username:user.username,
+        changed_at:new Date().toISOString()
+      })
+    });
+    const result = await response.text();
+    if (!response.ok) console.error(`Password-change email webhook returned HTTP ${response.status}: ${result}`);
+    else console.log(`Password-change email accepted for user ${user.id}`);
+  } catch (error) {
+    console.error('Password-change email failed:', error.message);
+  }
+}
+
 async function handler(req,res) {
   if (req.method === 'OPTIONS') return send(res,204,{});
   try {
@@ -177,11 +197,12 @@ async function handler(req,res) {
       if(!currentPassword||!newPassword) return send(res,400,{message:'Current and new passwords are required'});
       if(newPassword.length<8) return send(res,400,{message:'New password must be at least 8 characters'});
       if(currentPassword===newPassword) return send(res,400,{message:'Choose a password different from your current password'});
-      const q=await pool.query('SELECT password_hash FROM app_users WHERE id=$1 AND active=TRUE',[session.id]);
+      const q=await pool.query('SELECT id,username,email,full_name,password_hash FROM app_users WHERE id=$1 AND active=TRUE',[session.id]);
       if(!q.rows[0]||!(await bcrypt.compare(currentPassword,q.rows[0].password_hash))) return send(res,400,{message:'Current password is incorrect'});
       const passwordHash=await bcrypt.hash(newPassword,12);
       await pool.query('UPDATE app_users SET password_hash=$1 WHERE id=$2',[passwordHash,session.id]);
       await pool.query('INSERT INTO audit_log(actor_user_id,action,details) VALUES($1,$2,$3)',[session.id,'password_changed',JSON.stringify({source:'account_menu'})]);
+      void triggerPasswordChanged(q.rows[0]);
       return send(res,200,{success:true,message:'Password updated successfully'});
     }
     if (req.method === 'GET' && req.url.startsWith('/tickets')) {
