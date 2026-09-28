@@ -141,3 +141,13 @@ html[data-theme="dark"] .queue-icon-button{border-color:#3a4b62!important;backgr
 html[data-theme="dark"] .pagination-summary,html[data-theme="dark"] .pagination-page{color:#9eacbe!important}html[data-theme="dark"] .pagination-icon:disabled{border-color:#2d3a4c!important;background:#192538!important;color:#65748a!important;opacity:.72!important}html[data-theme="dark"] .pagination-icon:disabled:hover{border-color:#2d3a4c!important;background:#192538!important;color:#65748a!important}
 html[data-theme="dark"] .date-created{border:1px solid #344961;background:#26384e;color:#c3cedb}html[data-theme="dark"] .date-due{border:1px solid #60442b;background:#49331f;color:#efb37e}html[data-theme="dark"] .date-completed{border:1px solid #2e5a42;background:#203e2f;color:#8ed0a6}html[data-theme="dark"] .date-late{border:1px solid #684044;background:#4b292d;color:#f0a09a}
 html[data-theme="dark"] .filter-popover,html[data-theme="dark"] .ticket-modal-card,html[data-theme="dark"] .sla-modal-card{border-color:#34445a!important;background:#172235!important;color:#dce5f1!important}html[data-theme="dark"] .ticket-modal-item,html[data-theme="dark"] .ticket-modal-description{border-color:#2b3a4f!important;background:#121d2e!important;color:#d4deea!important}
+
+/* User ticket list dark-mode finishing */
+html[data-theme="dark"] .tickets-card{border-color:#304158!important;background:#18253a!important;box-shadow:0 14px 34px rgba(2,8,18,.22)!important}
+html[data-theme="dark"] .tickets-card h2{margin:0 0 16px!important}
+html[data-theme="dark"] .tickets-card .ticket{border-color:#34455b!important}
+html[data-theme="dark"] .tickets-card .ticket:first-child{padding-top:10px}
+html[data-theme="dark"] .tickets-card .ticket>.muted{color:#9eafc3!important}
+html[data-theme="dark"] .tickets-card .ticket-status-message{border-color:#304158!important;background:#121e30!important;box-shadow:none!important}
+html[data-theme="dark"]{scrollbar-color:#44536a #111a29;scrollbar-width:thin}
+html[data-theme="dark"] ::-webkit-scrollbar{width:11px;height:11px}html[data-theme="dark"] ::-webkit-scrollbar-track{background:#111a29}html[data-theme="dark"] ::-webkit-scrollbar-thumb{border:3px solid #111a29;border-radius:999px;background:#44536a}html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover{background:#56667e}
