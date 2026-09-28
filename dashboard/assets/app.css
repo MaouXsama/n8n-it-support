@@ -142,6 +142,13 @@ html[data-theme="dark"] .pagination-summary,html[data-theme="dark"] .pagination-
 html[data-theme="dark"] .date-created{border:1px solid #344961;background:#26384e;color:#c3cedb}html[data-theme="dark"] .date-due{border:1px solid #60442b;background:#49331f;color:#efb37e}html[data-theme="dark"] .date-completed{border:1px solid #2e5a42;background:#203e2f;color:#8ed0a6}html[data-theme="dark"] .date-late{border:1px solid #684044;background:#4b292d;color:#f0a09a}
 html[data-theme="dark"] .filter-popover,html[data-theme="dark"] .ticket-modal-card,html[data-theme="dark"] .sla-modal-card{border-color:#34445a!important;background:#172235!important;color:#dce5f1!important}html[data-theme="dark"] .ticket-modal-item,html[data-theme="dark"] .ticket-modal-description{border-color:#2b3a4f!important;background:#121d2e!important;color:#d4deea!important}
 
+/* Keep the viewport width stable when switching appearance themes. */
+html{scrollbar-gutter:stable;scrollbar-color:#b5c0cf #f3f6fb;scrollbar-width:thin}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:#f3f6fb}
+::-webkit-scrollbar-thumb{border:3px solid #f3f6fb;border-radius:999px;background:#b5c0cf}
+::-webkit-scrollbar-thumb:hover{background:#8f9daf}
+
 /* User ticket list dark-mode finishing */
 html[data-theme="dark"] .tickets-card{border-color:#304158!important;background:#18253a!important;box-shadow:0 14px 34px rgba(2,8,18,.22)!important}
 html[data-theme="dark"] .tickets-card h2{margin:0 0 16px!important}
