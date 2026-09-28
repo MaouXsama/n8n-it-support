@@ -425,7 +425,7 @@
       document.getElementById('ticket-modal-subtitle').textContent = ticket.ticket_id;
       const formatDate = value => value ? new Date(value).toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }) : '—';
       document.getElementById('ticket-modal-grid').innerHTML = [
-        ['Requester', ticket.requester || 'Not provided'], ['Department', ticket.department || '—'],
+        ['Requester', ticket.requester || 'Not provided'], ['Assigned Team', ticket.department || '—'],
         ['Priority', ticket.priority || 'Normal'], ['Status', ticket.status || '—'],
         ['Created', formatDate(ticket.created_at)], ['Due', formatDate(ticket.due_at)],
         ['Completed', formatDate(ticket.completed_at)]
@@ -926,7 +926,7 @@
         const overdue = ticketIsOverdue(ticket);
         const badge = String(ticket.priority || 'Normal').toLowerCase();
         const departments = ['Networking','IT Helpdesk','Software'];
-        const move = currentUser && (currentUser.role === 'full_admin' || currentUser.role === 'department_admin') ? `<select id="dep-${ticket.ticket_id}" data-current="${ticket.department}" aria-label="Change department for ${ticket.ticket_id}" onchange="reassignTicket('${ticket.ticket_id}',this)">${departments.map(d => `<option ${d === ticket.department ? 'selected' : ''}>${d}</option>`).join('')}</select>` : '';
+        const move = currentUser && (currentUser.role === 'full_admin' || currentUser.role === 'department_admin') ? `<select id="dep-${ticket.ticket_id}" data-current="${ticket.department}" aria-label="Reassign team for ${ticket.ticket_id}" onchange="reassignTicket('${ticket.ticket_id}',this)">${departments.map(d => `<option ${d === ticket.department ? 'selected' : ''}>${d}</option>`).join('')}</select>` : '';
         const statuses = ['Open','In Progress','Completed','Cancelled'];
         const statusControl = currentUser && (currentUser.role === 'full_admin' || currentUser.role === 'department_admin') ? `<select id="status-${ticket.ticket_id}" data-current="${ticket.status}" aria-label="Update status for ${ticket.ticket_id}" onchange="updateTicketStatus('${ticket.ticket_id}',this)">${statuses.map(s => `<option ${s === ticket.status ? 'selected' : ''}>${s}</option>`).join('')}</select>` : '';
         const moveControl = `<div class="action-stack">${move}</div>`;
@@ -949,7 +949,7 @@
       const previous = select.dataset.current;
       const department = select.value;
       if (department === previous) return;
-      if (!confirm(`Move ${ticketId} to ${department}?`)) { select.value = previous; return; }
+      if (!confirm(`Reassign ${ticketId} to the ${department} team?`)) { select.value = previous; return; }
       select.disabled = true;
       try {
         const response = await fetch('/api/tickets/reassign', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` }, body: JSON.stringify({ ticket_id: ticketId, department, reason: '' }) });

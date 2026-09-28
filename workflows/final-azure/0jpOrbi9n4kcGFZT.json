@@ -453,7 +453,7 @@
         "sendTo": "sda.n8n.project@gmail.com",
         "subject": "=New {{ $json.department }} ticket {{ $json.ticket_id }} requires review",
         "emailType": "html",
-        "message": "=A new ticket has been created.<br><br><b>Ticket ID:</b> {{ $json.ticket_id }}<br><b>Department:</b> {{ $json.department }}<br><b>Priority:</b> {{ $json.priority }}<br><b>SLA:</b> {{ $json.sla_hours }} hours<br><b>Requester:</b> {{ $json.requester }}<br><b>Title:</b> {{ $json.title }}<br><b>Description:</b> {{ $json.description }}<br><br>Please review it in the support dashboard.",
+        "message": "=A new ticket has been created.<br><br><b>Ticket ID:</b> {{ $json.ticket_id }}<br><b>Assigned Team:</b> {{ $json.department }}<br><b>Priority:</b> {{ $json.priority }}<br><b>SLA:</b> {{ $json.sla_hours }} hours<br><b>Requester:</b> {{ $json.requester }}<br><b>Title:</b> {{ $json.title }}<br><b>Description:</b> {{ $json.description }}<br><br>Please review it in the support dashboard.",
         "options": {}
       },
       "type": "n8n-nodes-base.gmail",
