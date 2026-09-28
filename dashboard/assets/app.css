@@ -151,9 +151,7 @@ html{scrollbar-gutter:stable;scrollbar-color:#b5c0cf #f3f6fb;scrollbar-width:thi
 
 /* User ticket list dark-mode finishing */
 html[data-theme="dark"] .tickets-card{border-color:#304158!important;background:#18253a!important;box-shadow:0 14px 34px rgba(2,8,18,.22)!important}
-html[data-theme="dark"] .tickets-card h2{margin:0 0 16px!important}
 html[data-theme="dark"] .tickets-card .ticket{border-color:#34455b!important}
-html[data-theme="dark"] .tickets-card .ticket:first-child{padding-top:10px}
 html[data-theme="dark"] .tickets-card .ticket>.muted{color:#9eafc3!important}
 html[data-theme="dark"] .tickets-card .ticket-status-message{border-color:#304158!important;background:#121e30!important;box-shadow:none!important}
 html[data-theme="dark"]{scrollbar-color:#44536a #111a29;scrollbar-width:thin}
