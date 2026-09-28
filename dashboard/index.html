@@ -426,9 +426,9 @@
       const formatDate = value => value ? new Date(value).toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }) : '—';
       document.getElementById('ticket-modal-grid').innerHTML = [
         ['Requester', ticket.requester || 'Not provided'], ['Assigned Team', ticket.department || '—'],
-        ['Priority', ticket.priority || 'Normal'], ['Status', ticket.status || '—'],
-        ['Created', formatDate(ticket.created_at)], ['Due', formatDate(ticket.due_at)],
-        ['Completed', formatDate(ticket.completed_at)]
+        ['Department', ticket.requester_department || ticket.user_department || 'Not assigned'], ['Priority', ticket.priority || 'Normal'],
+        ['Status', ticket.status || '—'], ['Created', formatDate(ticket.created_at)],
+        ['Due', formatDate(ticket.due_at)], ['Completed', formatDate(ticket.completed_at)]
       ].map(([label, value]) => {
         const normalized = String(value).toLowerCase().replace(/\s+/g, '-');
         const isPriority = label === 'Priority';
