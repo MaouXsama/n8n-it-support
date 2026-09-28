@@ -55,4 +55,4 @@ jobs:
           SSH_USER: ${{ secrets.AZURE_VM_USER }}
         run: |
           ssh "$SSH_USER@$SSH_HOST" \
-            'cd /opt/n8n-project && sudo docker compose --env-file .env.azure -f docker/docker-compose.azure.yml up -d --build && sudo docker ps --format "table {{.Names}}\t{{.Status}}"'
+            'cd /opt/n8n-project && sudo docker compose --env-file .env.azure -f docker/docker-compose.azure.yml up -d --build && sudo cp docker/Caddyfile /etc/caddy/Caddyfile && sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy && sudo docker ps --format "table {{.Names}}\t{{.Status}}"'
