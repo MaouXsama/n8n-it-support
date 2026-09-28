@@ -144,7 +144,7 @@
         form.querySelectorAll('input, button').forEach(control => { control.disabled = true; });
         message.classList.add('success');
         message.innerHTML = '<strong>Password changed successfully</strong><span>For your security, you’ll be signed out in a moment. Sign in again using your new password.</span>';
-        window.setTimeout(() => { sessionStorage.clear(); location.href = '/login'; }, 2000);
+        window.setTimeout(() => { sessionStorage.clear(); location.href = '/login'; }, 4000);
       } catch (error) {
         message.classList.add('error'); message.textContent = error.message;
         submit.disabled = false;
