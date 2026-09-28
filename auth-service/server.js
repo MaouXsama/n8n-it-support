@@ -143,8 +143,22 @@ async function handler(req,res) {
     }
     if (req.method === 'GET' && req.url === '/auth/me') {
       const session=authUser(req); if(!session) return send(res,401,{message:'Authentication required'});
-      const q=await pool.query('SELECT id,username,email,full_name,role,department,active FROM app_users WHERE id=$1 AND active=TRUE',[session.id]);
+      const q=await pool.query('SELECT id,username,email,full_name,role,department,active,created_at FROM app_users WHERE id=$1 AND active=TRUE',[session.id]);
       return q.rows[0]?send(res,200,{user:q.rows[0]}):send(res,401,{message:'User not found'});
+    }
+    if (req.method === 'POST' && req.url === '/auth/change-password') {
+      const session=authUser(req); if(!session) return send(res,401,{message:'Authentication required'});
+      const currentPassword=String(body.current_password||'');
+      const newPassword=String(body.new_password||'');
+      if(!currentPassword||!newPassword) return send(res,400,{message:'Current and new passwords are required'});
+      if(newPassword.length<8) return send(res,400,{message:'New password must be at least 8 characters'});
+      if(currentPassword===newPassword) return send(res,400,{message:'Choose a password different from your current password'});
+      const q=await pool.query('SELECT password_hash FROM app_users WHERE id=$1 AND active=TRUE',[session.id]);
+      if(!q.rows[0]||!(await bcrypt.compare(currentPassword,q.rows[0].password_hash))) return send(res,400,{message:'Current password is incorrect'});
+      const passwordHash=await bcrypt.hash(newPassword,12);
+      await pool.query('UPDATE app_users SET password_hash=$1 WHERE id=$2',[passwordHash,session.id]);
+      await pool.query('INSERT INTO audit_log(actor_user_id,action,details) VALUES($1,$2,$3)',[session.id,'password_changed',JSON.stringify({source:'account_menu'})]);
+      return send(res,200,{success:true,message:'Password updated successfully'});
     }
     if (req.method === 'GET' && req.url.startsWith('/tickets')) {
       const session=authUser(req); if(!session) return send(res,401,{message:'Authentication required'});

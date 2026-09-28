@@ -42,7 +42,7 @@
       <img class="masar-logo" src="/dashboard-assets/masar-logo.png" alt="Masar logo">
       <div class="masar-brand-copy"><h1 id="welcome">User Portal</h1><p>Submit and track your IT support tickets.</p></div>
     </div>
-    <button class="utility-button header-action" id="signout" type="button" aria-label="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4"/><path d="m15 8 4 4-4 4"/><path d="M19 12H9"/></svg></button>
+    <button class="utility-button header-action account-trigger" id="account-menu-trigger" type="button" aria-label="Account settings" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg></button>
   </header>
   <main>
     <div class="card intro-banner intro-banner-with-action">
@@ -117,12 +117,12 @@
       await loadTickets();
     }
 
-    document.getElementById('signout').addEventListener('click',()=>{sessionStorage.clear();location.href='/login'});
     document.getElementById('ticket-first').addEventListener('click',()=>{if(ticketPage>1){ticketPage=1;loadTickets(true);}});
     document.getElementById('ticket-prev').addEventListener('click',()=>{if(ticketPage>1){ticketPage-=1;loadTickets(true);}});
     document.getElementById('ticket-next').addEventListener('click',()=>{if(ticketPage<ticketTotalPages){ticketPage+=1;loadTickets(true);}});
     document.getElementById('ticket-last').addEventListener('click',()=>{if(ticketPage<ticketTotalPages){ticketPage=ticketTotalPages;loadTickets(true);}});
     initialize();
   </script>
+  <script src="/dashboard-assets/account-menu.js"></script>
 </body>
 </html>

@@ -60,3 +60,44 @@
 .intro-banner-with-action{justify-content:space-between!important}
 .intro-banner-with-action .intro-banner-content{flex:1}
 @media(max-width:720px){.intro-banner{align-items:flex-start!important;padding:18px!important}.intro-banner-with-action{align-items:stretch!important;flex-direction:column!important}.intro-banner-content{align-items:flex-start}.intro-banner-with-action>a{align-self:flex-start}}
+
+/* Account menu, profile, password, and appearance */
+.account-popover{display:none;position:fixed;z-index:1300;top:86px;right:clamp(20px,5vw,64px);width:min(340px,calc(100vw - 32px));overflow:hidden;border:1px solid #d8e0eb;border-radius:16px;background:#fff;color:#172b4d;box-shadow:0 22px 55px rgba(15,23,42,.22)}
+.account-popover.open{display:block}
+.account-summary{display:flex;align-items:center;gap:12px;padding:17px;border-bottom:1px solid #e6ebf2;background:#f8fafc}
+.account-summary>div{display:grid;min-width:0}.account-summary strong,.account-summary span,.account-summary small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.account-summary strong{font-size:14px}.account-summary span{color:#64748b;font-size:12px}.account-summary small{margin-top:2px;color:#087f9d;font-size:11px;font-weight:800}
+.account-avatar{display:grid;place-items:center;width:42px;height:42px;flex:none;border-radius:12px;background:#e1f5f9;color:#087f9d;font-weight:900}
+.account-menu-list{padding:7px}
+.account-menu-list>button{display:flex!important;align-items:center!important;gap:11px!important;width:100%!important;min-height:42px!important;margin:0!important;padding:10px!important;border:0!important;border-radius:9px!important;background:transparent!important;color:#334155!important;box-shadow:none!important;text-align:left;font-weight:750!important;transform:none!important;filter:none!important}
+.account-menu-list>button:hover{background:#f1f5f9!important;color:#172b4d!important;box-shadow:none!important;transform:none!important}
+.account-menu-list svg,.appearance-row svg{width:19px;height:19px;flex:none}
+.appearance-row{margin:3px 0;padding:10px;border-top:1px solid #edf0f4;border-bottom:1px solid #edf0f4}
+.appearance-row>span{display:flex;align-items:center;gap:11px;margin-bottom:9px;color:#334155;font-size:13px}
+.theme-options{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:4px;border-radius:9px;background:#eef2f6}
+.theme-options button{width:auto!important;min-height:32px!important;margin:0!important;padding:6px 5px!important;border:0!important;border-radius:7px!important;background:transparent!important;color:#64748b!important;box-shadow:none!important;font-size:11px!important;font-weight:800!important;transform:none!important;filter:none!important}
+.theme-options button:hover{background:#e2e8f0!important;color:#334155!important;box-shadow:none!important}.theme-options button.active{background:#fff!important;color:#172b4d!important;box-shadow:0 2px 7px rgba(51,65,85,.13)!important}
+.account-menu-list>.account-signout{margin-top:4px!important;color:#b42318!important}.account-menu-list>.account-signout:hover{background:#fff1f0!important;color:#991b1b!important}
+.account-modal{display:none;position:fixed;inset:0;z-index:1400;align-items:center;justify-content:center;padding:20px;background:rgba(15,23,42,.55);backdrop-filter:blur(5px)}.account-modal.open{display:flex}.account-modal-open{overflow:hidden}
+.account-modal-card{width:min(620px,100%);max-height:92vh;overflow:auto;padding:24px;border:1px solid #d9e1eb;border-radius:20px;background:#fff;color:#172b4d;box-shadow:0 30px 90px rgba(15,23,42,.3)}
+.account-modal-card header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:16px;border-bottom:1px solid #e7ebf0}.account-modal-card header small{color:#087f9d;font-size:11px;font-weight:900;letter-spacing:.12em}.account-modal-card h2{margin:3px 0 0!important;font-size:25px}.account-modal-card header p{margin:5px 0 0;color:#64748b;font-size:13px}.account-modal-close{flex:none;font-size:25px!important;font-weight:400!important;line-height:1!important}
+.account-profile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}.account-profile-item{display:grid;gap:4px;min-width:0;padding:13px;border:1px solid #e2e8f0;border-radius:11px;background:#f8fafc}.account-profile-item span{color:#64748b;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.035em}.account-profile-item strong{overflow-wrap:anywhere;color:#263950;font-size:14px}
+.account-modal-card footer{display:flex;justify-content:flex-end;gap:9px;margin-top:20px;padding-top:16px;border-top:1px solid #e7ebf0}.account-modal-card footer button{width:auto!important;margin:0!important}
+.account-password-card{width:min(500px,100%)}.account-password-card form{margin-top:18px}.account-password-card label{margin:13px 0 6px;color:#334155;font-size:13px;font-weight:800}.account-password-card input{width:100%;margin:0;padding:11px 12px}.account-form-message{min-height:22px;margin-top:12px;color:#64748b;font-size:13px;font-weight:700}.account-form-message.error{color:#b42318}.account-form-message.success{color:#16723b}
+@media(max-width:600px){.account-popover{top:80px;right:16px}.account-profile-grid{grid-template-columns:1fr}.account-modal-card{padding:19px}.account-modal-card footer{align-items:stretch;flex-direction:column-reverse}.account-modal-card footer button{width:100%!important}}
+
+html[data-theme="dark"]{--ink:#e6edf7;--muted:#9ba9bc;--line:#334155;--surface:#172033;--canvas:#0b1220;--shadow:0 18px 45px rgba(0,0,0,.28)}
+html[data-theme="dark"] body{background:radial-gradient(circle at 10% 0%,#152544 0,transparent 34%),#0b1220!important;color:#e6edf7!important}
+html[data-theme="dark"] .card,html[data-theme="dark"] .panel,html[data-theme="dark"] .account-modal-card{border-color:#334155!important;background:#172033!important;color:#e6edf7!important}
+html[data-theme="dark"] .intro-banner{background:linear-gradient(105deg,#152534 0%,#172033 68%)!important}
+html[data-theme="dark"] .intro-banner h2,html[data-theme="dark"] .card h2,html[data-theme="dark"] .panel h2,html[data-theme="dark"] .account-modal-card h2{color:#edf4ff!important}
+html[data-theme="dark"] .intro-banner p,html[data-theme="dark"] .muted,html[data-theme="dark"] .hint,html[data-theme="dark"] .section-subtitle{color:#9ba9bc!important}
+html[data-theme="dark"] .intro-banner-icon{border-color:#365064;background:#173342;color:#42bed7}
+html[data-theme="dark"] .account-popover{border-color:#3a4658;background:#172033;color:#e6edf7}.account-popover{}
+html[data-theme="dark"] .account-summary{border-color:#344155;background:#111a2a}html[data-theme="dark"] .account-summary span{color:#9ba9bc}
+html[data-theme="dark"] .account-menu-list>button,html[data-theme="dark"] .appearance-row>span{color:#d7e0ec!important}html[data-theme="dark"] .account-menu-list>button:hover{background:#243044!important;color:#fff!important}
+html[data-theme="dark"] .appearance-row{border-color:#334155}html[data-theme="dark"] .theme-options{background:#111a2a}html[data-theme="dark"] .theme-options button{color:#9ba9bc!important}html[data-theme="dark"] .theme-options button:hover{background:#253247!important;color:#e6edf7!important}html[data-theme="dark"] .theme-options button.active{background:#334155!important;color:#fff!important}
+html[data-theme="dark"] .account-profile-item,html[data-theme="dark"] .toolbar,html[data-theme="dark"] .ticket-status-message{border-color:#344155!important;background:#111a2a!important}html[data-theme="dark"] .account-profile-item strong{color:#e6edf7}html[data-theme="dark"] .account-modal-card header,html[data-theme="dark"] .account-modal-card footer{border-color:#344155}
+html[data-theme="dark"] input,html[data-theme="dark"] textarea,html[data-theme="dark"] select{border-color:#42516a!important;background:#111a2a!important;color:#e6edf7!important}
+html[data-theme="dark"] table,html[data-theme="dark"] th,html[data-theme="dark"] td{color:#dce5f1!important}html[data-theme="dark"] th{background:#111a2a!important}html[data-theme="dark"] tr:hover td{background:#202c40!important}
+html[data-theme="dark"] .primary-action,html[data-theme="dark"] .secondary-action,html[data-theme="dark"] .utility-button{border-color:#46546a!important;background:#243044!important;color:#e6edf7!important}html[data-theme="dark"] .primary-action:hover,html[data-theme="dark"] .secondary-action:hover,html[data-theme="dark"] .utility-button:hover{background:#334155!important;color:#fff!important}
+html[data-theme="dark"] .auth-shell{border-color:#3a4658;background:#172033}html[data-theme="dark"] .auth-card{background:#172033;color:#e6edf7}html[data-theme="dark"] .auth-card>p{color:#9ba9bc}
