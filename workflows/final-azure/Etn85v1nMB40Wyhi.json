@@ -32,7 +32,7 @@
         0
       ],
       "parameters": {
-        "query": "UPDATE tickets SET status = '{{ $json.body.status }}', completed_at = CASE WHEN '{{ $json.body.status }}' = 'Completed' THEN NOW() ELSE completed_at END WHERE ticket_id = '{{ $json.body.ticket_id }}' RETURNING ticket_id, requester, status, completed_at;",
+        "query": "UPDATE tickets SET status = '{{ $json.body.status }}', completed_at = CASE WHEN '{{ $json.body.status }}' = 'Completed' THEN NOW() ELSE completed_at END WHERE ticket_id = '{{ $json.body.ticket_id }}' RETURNING ticket_id, requester, status, completed_at, title, department, priority, created_at, due_at;",
         "options": {},
         "operation": "executeQuery"
       },
@@ -55,9 +55,10 @@
       "webhookId": "30cda3f4-1403-4209-a602-c30f2a30c1f0",
       "parameters": {
         "sendTo": "={{ $json.requester }}",
-        "message": "={{ 'Your IT support ticket ' + $('Webhook').item.json.body.ticket_id + ' is completed. Please review the resolution in the support portal.' }}",
+        "emailType": "html",
+        "message": "=<!doctype html><html><body style='margin:0;background:#eef3f9;font-family:Arial,Helvetica,sans-serif;color:#10233f'><table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='background:#eef3f9;padding:32px 14px'><tr><td align='center'><table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='max-width:640px;background:#fff;border:1px solid #d8e2ef;border-radius:20px;overflow:hidden'><tr><td style='height:5px;background:#2e9d61'></td></tr><tr><td style='padding:24px 30px;background:#09234b;color:#fff'><table role='presentation' width='100%'><tr><td width='86'><img src='https://raw.githubusercontent.com/MaouXsama/n8n-it-support/main/dashboard/assets/masar-email-logo.png' width='72' height='72' alt='Masar' style='display:block;border-radius:15px;border:1px solid #149bc1'></td><td><div style='font-size:11px;font-weight:700;letter-spacing:2.2px;color:#86def2;margin-bottom:8px'>TICKET UPDATE</div><h1 style='margin:0;font-size:27px;color:#fff'>Your ticket is complete</h1><div style='width:42px;height:3px;background:#ff9d1d;margin-top:13px'></div></td></tr></table></td></tr><tr><td style='padding:32px 30px 28px'><p style='margin:0 0 16px;font-size:18px'>Hello,</p><p style='margin:0 0 24px;color:#53657d;font-size:15px;line-height:1.75'>Your Masar IT Support ticket has been completed successfully.</p><table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='background:#f6f9fc;border:1px solid #dce6f1;border-radius:14px'><tr><td style='padding:20px 22px;border-left:4px solid #2e9d61'><div style='font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#667890;margin-bottom:12px'>Completion details</div><table role='presentation' style='font-size:14px;line-height:1.8;color:#253a56'><tr><td style='padding-right:14px;font-weight:700'>Ticket ID</td><td>{{ $json.ticket_id }}</td></tr><tr><td style='padding-right:14px;font-weight:700'>Title</td><td>{{ $json.title }}</td></tr><tr><td style='padding-right:14px;font-weight:700'>Assigned Team</td><td>{{ $json.department }}</td></tr><tr><td style='padding-right:14px;font-weight:700'>Completed</td><td>{{ new Date($json.completed_at).toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }) }}</td></tr><tr><td style='padding-right:14px;font-weight:700'>SLA result</td><td><strong style='color:{{ new Date($json.completed_at) <= new Date($json.due_at) ? '#16723b' : '#c9362b' }}'>{{ new Date($json.completed_at) <= new Date($json.due_at) ? 'Completed within SLA' : 'Completed after SLA' }}</strong></td></tr></table></td></tr></table><p style='margin:24px 0 8px;color:#53657d;font-size:13px'>View your ticket history:</p><p style='margin:0;color:#1769aa;font-size:13px;word-break:break-all'>https://n8n-project-dev-2rd4r7.eastus.cloudapp.azure.com/user/</p></td></tr><tr><td style='padding:18px 30px;background:#f6f9fc;border-top:1px solid #e2e9f2;color:#7b8ba1;font-size:12px;text-align:center'>Masar IT Support &nbsp;·&nbsp; Automated completion notification</td></tr></table></td></tr></table></body></html>",
         "options": {},
-        "subject": "Your IT support ticket is completed"
+        "subject": "=Your Masar support ticket {{ $json.ticket_id }} is complete"
       },
       "credentials": {
         "gmailOAuth2": {
