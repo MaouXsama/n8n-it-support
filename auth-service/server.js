@@ -1,5 +1,4 @@
 const http = require('http');
-const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
@@ -12,7 +11,10 @@ const pool = new Pool({
   password: process.env.POSTGRES_PASSWORD,
   ssl: process.env.POSTGRES_SSL === 'false' ? false : { rejectUnauthorized: false }
 });
-const secret = process.env.AUTH_JWT_SECRET || crypto.randomBytes(32).toString('hex');
+const secret = process.env.AUTH_JWT_SECRET;
+if (!secret || secret.length < 32) {
+  throw new Error('AUTH_JWT_SECRET must be configured with at least 32 characters');
+}
 
 async function init() {
   await pool.query(`CREATE TABLE IF NOT EXISTS app_users (
@@ -38,11 +40,17 @@ async function init() {
     ['helpdeskadmin','helpdeskadmin@example.com','Helpdesk Administrator','department_admin','IT Helpdesk'],
     ['applicationadmin','applicationadmin@example.com','Software Administrator','department_admin','Software']
   ];
-  const defaultHash = await bcrypt.hash(process.env.DEFAULT_ADMIN_PASSWORD || 'N8nAdmin-Demo-2026!', 12);
-  for (const a of admins) await pool.query(`INSERT INTO app_users(username,email,full_name,password_hash,role,department) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT (username) DO NOTHING`, [...a.slice(0,3),defaultHash,a[3],a[4]]);
+  const defaultAdminPassword = process.env.DEFAULT_ADMIN_PASSWORD;
+  if (defaultAdminPassword) {
+    if (defaultAdminPassword.length < 12) throw new Error('DEFAULT_ADMIN_PASSWORD must contain at least 12 characters');
+    const defaultHash = await bcrypt.hash(defaultAdminPassword, 12);
+    for (const a of admins) await pool.query(`INSERT INTO app_users(username,email,full_name,password_hash,role,department) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT (username) DO NOTHING`, [...a.slice(0,3),defaultHash,a[3],a[4]]);
+  } else {
+    console.warn('DEFAULT_ADMIN_PASSWORD is not configured; default administrator seeding is disabled');
+  }
 }
 
-function send(res, status, body) { res.writeHead(status, {'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}); res.end(JSON.stringify(body)); }
+function send(res, status, body) { res.writeHead(status, {'Content-Type':'application/json','Cache-Control':'no-store'}); res.end(JSON.stringify(body)); }
 function read(req) { return new Promise((resolve,reject)=>{let b='';req.on('data',c=>b+=c);req.on('end',()=>{try{resolve(b?JSON.parse(b):{})}catch(e){reject(e)}})}) }
 function token(user) { return jwt.sign({id:user.id,username:user.username,email:user.email,role:user.role,department:user.department}, secret, {expiresIn:'8h'}); }
 function authUser(req) { const value=req.headers.authorization||''; if(!value.startsWith('Bearer ')) return null; try{return jwt.verify(value.slice(7),secret)}catch{return null} }

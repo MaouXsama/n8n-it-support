@@ -1,6 +1,15 @@
 n8n-project-dev-2rd4r7.eastus.cloudapp.azure.com {
     encode gzip
 
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        -Server
+    }
+
     handle /google30524c0f3cbd8823.html {
         reverse_proxy 127.0.0.1:8080
     }
