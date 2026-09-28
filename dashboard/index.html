@@ -384,7 +384,7 @@
       </div>
       <div class="sla-chart-toolbar">
         <div class="sla-periods" aria-label="Chart period"><button class="sla-period-button active" type="button" data-days="7">7 days</button><button class="sla-period-button" type="button" data-days="14">14 days</button><button class="sla-period-button" type="button" data-days="30">30 days</button></div>
-        <div class="sla-chart-legend"><span><i style="background:#22a052"></i>Within SLA</span><span><i style="background:#c93227"></i>After SLA</span></div>
+        <div class="sla-chart-legend"><span><i class="sla-legend-bar"></i>Within SLA</span><span><i class="sla-legend-line"></i>After SLA</span></div>
       </div>
       <div class="sla-chart-summary" id="sla-chart-summary"><span class="sla-summary-loading">Loading performance data…</span></div>
       <div class="sla-chart-stage" id="sla-chart-stage"><div class="sla-chart-empty">Loading chart…</div></div>
@@ -487,39 +487,46 @@
         document.getElementById('sla-chart-stage').innerHTML = '<div class="sla-chart-empty">No performance data for this period.</div>';
         return;
       }
-      const width = 900, height = 340, left = 48, right = 18, top = 20, bottom = 58;
+      const width = 900, height = 260, left = 48, right = 22, top = 14, bottom = 44;
       const plotWidth = width - left - right, plotHeight = height - top - bottom;
-      const peak = Math.max(1, ...points.map(point => Number(point.within_sla || 0) + Number(point.after_sla || 0)));
+      const peak = Math.max(1, ...points.flatMap(point => [Number(point.within_sla || 0), Number(point.after_sla || 0)]));
       const yMax = peak <= 5 ? 5 : Math.ceil(peak / 5) * 5;
       const slot = plotWidth / points.length;
-      const barWidth = Math.max(8, Math.min(36, slot * .58));
-      let svg = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Stacked SLA completion chart">`;
-      for (let step = 0; step <= 5; step += 1) {
-        const value = Math.round(yMax * step / 5);
-        const y = top + plotHeight - plotHeight * step / 5;
+      const barWidth = Math.max(7, Math.min(28, slot * .38));
+      const chartPoints = points.map((point, index) => {
+        const within = Number(point.within_sla || 0), after = Number(point.after_sla || 0);
+        return { ...point, within, after, x: left + slot * index + slot / 2, afterY: top + plotHeight - after / yMax * plotHeight };
+      });
+      const smoothLine = chartPoints.reduce((path, point, index, items) => {
+        if (!index) return `M ${point.x} ${point.afterY}`;
+        const previous = items[index - 1];
+        const control = (previous.x + point.x) / 2;
+        return `${path} C ${control} ${previous.afterY}, ${control} ${point.afterY}, ${point.x} ${point.afterY}`;
+      }, '');
+      let svg = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Daily SLA outcomes chart">`;
+      for (let step = 0; step <= 4; step += 1) {
+        const value = Math.round(yMax * step / 4);
+        const y = top + plotHeight - plotHeight * step / 4;
         svg += `<line class="sla-chart-grid" x1="${left}" y1="${y}" x2="${width-right}" y2="${y}"/><text class="sla-chart-axis-label" x="${left-10}" y="${y+4}" text-anchor="end">${value}</text>`;
       }
-      points.forEach((point, index) => {
-        const within = Number(point.within_sla || 0), after = Number(point.after_sla || 0), dayTotal = within + after;
-        const x = left + slot * index + (slot - barWidth) / 2;
+      chartPoints.forEach((point, index) => {
+        const { within, after } = point, dayTotal = within + after;
+        const x = point.x - barWidth / 2;
         const withinHeight = within / yMax * plotHeight;
-        const afterHeight = after / yMax * plotHeight;
         const withinY = top + plotHeight - withinHeight;
-        const afterY = withinY - afterHeight;
         const date = new Date(`${point.date}T00:00:00+03:00`);
         const shortDate = date.toLocaleDateString('en-US', { timeZone: 'Asia/Riyadh', month: 'short', day: 'numeric' });
         const fullDate = date.toLocaleDateString('en-US', { timeZone: 'Asia/Riyadh', year: 'numeric', month: 'long', day: 'numeric' });
         const dailyCompliance = dayTotal ? Math.round(within / dayTotal * 1000) / 10 : 0;
-        svg += `<g class="sla-chart-bar"><title>${escapeHtml(fullDate)} — ${dayTotal} completed, ${within} within SLA, ${after} after SLA, ${dailyCompliance}% compliance</title>`;
-        if (withinHeight > 0) svg += `<rect x="${x}" y="${withinY}" width="${barWidth}" height="${withinHeight}" rx="4" fill="#22a052"/>`;
-        if (afterHeight > 0) svg += `<rect x="${x}" y="${afterY}" width="${barWidth}" height="${afterHeight}" rx="4" fill="#c93227"/>`;
-        if (!dayTotal) svg += `<rect x="${x}" y="${top+plotHeight-2}" width="${barWidth}" height="2" rx="1" fill="#cbd5e1"/>`;
+        if (withinHeight > 0) svg += `<rect class="sla-chart-bar" x="${x}" y="${withinY}" width="${barWidth}" height="${withinHeight}" rx="5" fill="#2e9d61"><title>${escapeHtml(fullDate)} — ${within} completed within SLA</title></rect>`;
         const labelEvery = points.length > 20 ? 5 : points.length > 10 ? 2 : 1;
-        if (index % labelEvery === 0 || index === points.length - 1) svg += `<text class="sla-chart-axis-label" x="${x+barWidth/2}" y="${height-29}" text-anchor="middle">${escapeHtml(shortDate)}</text>`;
-        svg += '</g>';
+        if (index % labelEvery === 0 || index === points.length - 1) svg += `<text class="sla-chart-axis-label" x="${point.x}" y="${height-17}" text-anchor="middle">${escapeHtml(shortDate)}</text>`;
+        svg += `<rect x="${left + slot * index}" y="${top}" width="${slot}" height="${plotHeight}" fill="transparent" pointer-events="all"><title>${escapeHtml(fullDate)} — ${dayTotal} completed, ${within} within SLA, ${after} after SLA, ${dailyCompliance}% compliance</title></rect>`;
       });
+      svg += `<path class="sla-after-line" d="${smoothLine}"/>`;
+      chartPoints.filter(point => point.after > 0).forEach(point => { svg += `<circle class="sla-after-point" cx="${point.x}" cy="${point.afterY}" r="4"><title>${escapeHtml(point.date)} — ${point.after} completed after SLA</title></circle>`; });
       svg += '</svg>';
-      document.getElementById('sla-chart-stage').innerHTML = svg;
+      document.getElementById('sla-chart-stage').innerHTML = `<div class="sla-chart-heading"><div><strong>Daily SLA outcomes</strong><span>Completed tickets by day</span></div><small>Hover over the chart for details</small></div>${svg}`;
     }
 
     document.getElementById('sla-modal-close').addEventListener('click', closeSlaChart);

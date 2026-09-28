@@ -33,15 +33,18 @@
 .sla-period-button.active{background:#334155!important;color:#fff!important;box-shadow:0 3px 8px rgba(51,65,85,.2)!important}
 .sla-chart-legend{gap:8px!important}
 .sla-chart-legend span{padding:7px 10px;border:1px solid #e2e8f0;border-radius:999px;background:#f8fafc;color:#536174;font-size:11px}
-.sla-chart-legend i{width:9px!important;height:9px!important;border-radius:50%!important}
+.sla-chart-legend i{display:inline-block;width:11px!important;height:9px!important;border-radius:3px!important}
+.sla-legend-bar{background:#2e9d61}.sla-legend-line{position:relative;height:2px!important;border-radius:999px!important;background:#c94a43}.sla-legend-line:after{content:"";position:absolute;top:50%;left:50%;width:5px;height:5px;border-radius:50%;background:#c94a43;transform:translate(-50%,-50%)}
 .sla-chart-summary{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 16px!important}
 .sla-summary-item{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;padding:9px 13px;border:1px solid #e2e8f0;border-radius:11px;background:#f8fafc;color:#334155}
 .sla-summary-item small{color:#69778b;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.035em}
 .sla-summary-item strong{font-size:20px;letter-spacing:-.025em}
 .sla-summary-good strong{color:#16803f}.sla-summary-bad strong{color:#c93227}
 .sla-summary-loading{grid-column:1/-1;padding:12px;color:#64748b;font-size:13px;font-weight:700}
-.sla-chart-stage{min-height:290px!important;padding:12px 12px 3px!important;border-color:#dde4ed!important;border-radius:16px!important;background:linear-gradient(180deg,#fbfcfe,#f8fafc)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
-.sla-chart-stage svg{min-height:270px!important}
-.sla-chart-grid{stroke:#dfe5ec!important}.sla-chart-axis-label{fill:#6b7a90!important;font-size:10px!important;font-weight:700!important}
+.sla-chart-stage{min-height:284px!important;padding:14px 18px 4px!important;border-color:#e4e9ef!important;border-radius:16px!important;background:#fcfdff!important;box-shadow:none!important}
+.sla-chart-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:0 4px 8px}.sla-chart-heading div{display:grid;gap:1px}.sla-chart-heading strong{color:#263950;font-size:14px}.sla-chart-heading span,.sla-chart-heading small{color:#8290a3;font-size:11px;font-weight:650}
+.sla-chart-stage svg{min-height:228px!important}
+.sla-chart-grid{stroke:#e8edf2!important;stroke-width:1!important}.sla-chart-axis-label{fill:#78879a!important;font-size:10px!important;font-weight:700!important}
+.sla-chart-bar{transition:opacity .18s ease}.sla-chart-bar:hover{opacity:.82}.sla-after-line{fill:none;stroke:#c94a43;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round}.sla-after-point{fill:#fff;stroke:#c94a43;stroke-width:2.5}
 @media(max-width:680px){.sla-modal-card{padding:20px!important}.sla-chart-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.sla-period-button{min-width:62px!important}.sla-chart-legend{flex-wrap:wrap}}
 @media(max-width:720px){.header-action{width:48px!important;min-width:48px!important;height:48px!important;min-height:48px!important}}
