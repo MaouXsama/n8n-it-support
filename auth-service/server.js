@@ -133,6 +133,21 @@ async function triggerCompletionEmail(ticketId) {
   }
 }
 
+async function triggerAccountWelcome(user) {
+  try {
+    const response = await fetch('https://n8n-project-dev-2rd4r7.eastus.cloudapp.azure.com/webhook/account-created', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email:user.email,full_name:user.full_name,username:user.username})
+    });
+    const result = await response.text();
+    if (!response.ok) console.error(`Account welcome webhook returned HTTP ${response.status}: ${result}`);
+    else console.log(`Account welcome email accepted for user ${user.id}`);
+  } catch (error) {
+    console.error('Account welcome email failed:', error.message);
+  }
+}
+
 async function handler(req,res) {
   if (req.method === 'OPTIONS') return send(res,204,{});
   try {
@@ -142,6 +157,7 @@ async function handler(req,res) {
       const username = String(body.email).split('@')[0].toLowerCase();
       const hash = await bcrypt.hash(body.password, 12);
       const q = await pool.query('INSERT INTO app_users(username,email,full_name,password_hash) VALUES($1,$2,$3,$4) RETURNING id,username,email,full_name,role,department', [username,body.email.toLowerCase(),body.full_name,hash]);
+      void triggerAccountWelcome(q.rows[0]);
       return send(res,201,{user:q.rows[0],token:token(q.rows[0])});
     }
     if (req.method === 'POST' && req.url === '/auth/login') {
