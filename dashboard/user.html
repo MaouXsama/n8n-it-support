@@ -6,10 +6,12 @@
   <title>Masar | My Tickets</title>
   <link rel="icon" href="/dashboard-assets/masar-favicon.svg" type="image/svg+xml">
   <style>
-    body{margin:0;background:#f4f7fb;font-family:Inter,system-ui;color:#10233f}
-    .top{background:linear-gradient(135deg,#102a56,#2563eb);color:#fff;padding:28px clamp(20px,6%,80px);display:flex;align-items:center;justify-content:space-between;gap:20px}
-    .top button{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);color:#fff;margin:0}
-    .wrap{max-width:1500px;margin:auto;padding:28px clamp(20px,5vw,64px) 56px}
+    body{margin:0;padding:0;background:#f5f7fb;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172b4d}
+    .topbar{background:linear-gradient(135deg,#102a56,#1d4ed8);color:#fff;padding:28px clamp(20px,5vw,64px);display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .topbar h1{margin:0;font-size:clamp(25px,3vw,38px);letter-spacing:-.03em}
+    .topbar p{margin:8px 0 0;color:#dbeafe}
+    .topbar button{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);color:#fff;margin:0}
+    main{max-width:1500px;margin:0 auto;padding:28px clamp(20px,5vw,64px) 56px}
     .card{background:#fff;border:1px solid #e4e7ec;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 8px 24px #10233f0d}
     button{background:#2563eb;color:#fff;border:0;border-radius:9px;padding:12px 16px;font-weight:800;cursor:pointer}
     .muted{color:#667085}
@@ -34,14 +36,14 @@
   <link rel="stylesheet" href="/dashboard-assets/app.css">
 </head>
 <body>
-  <header class="top">
+  <header class="topbar">
     <div class="masar-brand">
       <img class="masar-logo" src="/dashboard-assets/masar-logo.png" alt="Masar logo">
       <div class="masar-brand-copy"><h1 id="welcome">User Portal</h1><p>Submit and track your IT support tickets.</p></div>
     </div>
     <button class="utility-button header-action" id="signout" type="button" aria-label="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4"/><path d="m15 8 4 4-4 4"/><path d="M19 12H9"/></svg></button>
   </header>
-  <main class="wrap">
+  <main>
     <div class="card intro-banner intro-banner-with-action">
       <div class="intro-banner-content">
         <span class="intro-banner-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M18 19c0 1.1-.9 2-2 2h-3"/><rect x="3" y="13" width="4" height="6" rx="2"/><rect x="17" y="13" width="4" height="6" rx="2"/></svg></span>
